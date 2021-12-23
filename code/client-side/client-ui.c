@@ -20,7 +20,8 @@ void homePageScreen() {
 		printf("| 0. Exit                       |\n");
 		printf("|_______________________________|");
 		while(1) {
-			printf("\n---> your choice: ");
+			printf("--\n");
+			printf("\n---> Your choice: ");
 			scanf("%d", &choice);
 			while(getchar() != '\n');
 			
@@ -35,7 +36,7 @@ void homePageScreen() {
 					exitGameScreen();
 					break;
 				default:
-					printf("[error! try again.]");
+					printf("[Error! try again]");
 			}
 			if (choice > -1 && choice < 3) break;
 		}
@@ -49,25 +50,28 @@ void loginScreen() {
 	
 	printf("\n __________ Login __________\n");
 	
+	printf("--\n");
 	printf("---> username: ");
 	scanf("%[^\n]s", _username);
 	while(getchar() != '\n');
 	
 	printf("---> password: ");
 	scanf("%[^\n]s", _password);
+
+	printf("\n");
 	
 	int loginSuccess = login(_username, _password);
 	if (loginSuccess) {
 		strcpy(currentUsername, _username);
 		strcpy(currentPassword, _password);	
 
-		printf("[login successful.]\n");
+		printf("[Login successful]\n");
 		greetingScreen();
 
 		menuScreen();		 
 	}
 	else
-		printf("[login failed.]\n");
+		printf("[Login failed]\n");
 }
 
 void registerScreen() {
@@ -83,7 +87,7 @@ void registerScreen() {
 		while(getchar() != '\n');
 
 		if (validateUsername(_username) == 0)
-			printf("[try again.]\n");
+			printf("[Try again]\n");
 		else break;
 	}
 	
@@ -93,23 +97,23 @@ void registerScreen() {
 		while(getchar() != '\n');
 		
 		if (validatePassword(_password) == 0)
-			printf("[try again.]\n");
+			printf("[Try again]\n");
 		else break;		
 	}
 	
 	int registerSuccess = registerNewAccount(_username, _password);
 	if (registerSuccess)
-		printf("[registration successful.]\n");
+		printf("[Registration successful]\n");
 	else
-		printf("[sorry! registration failed.]\n");
+		printf("[Sorry! registration failed]\n");
 }
 
 void exitGameScreen() {
-	printf("[Bye!]\n");
+	printf("\n[Bye!]\n\n");
 }
 
 void greetingScreen() {
-	printf("[Hello %s.]\n", currentUsername);
+	printf("\n[Hello %s]\n", currentUsername);
 }
 
 void menuScreen() {
@@ -125,7 +129,8 @@ void menuScreen() {
 		printf("| 4. Logout                     |\n");
 		printf("|_______________________________|");
 		while (1) {
-			printf("\n---> your choice: ");
+			printf("--\n");
+			printf("\n---> Your choice: ");
 			scanf("%d", &choice);
 			while(getchar() != '\n');
 			
@@ -143,7 +148,7 @@ void menuScreen() {
 					logoutScreen();
 					break;
 				default:
-					printf("[error! try again.]\n");
+					printf("[Error! try again]\n");
 			}
 			if (choice > 0 && choice < 5) break;
 		}
@@ -164,7 +169,7 @@ void createRoomScreen() {
 }
 
 void logoutScreen() {
-	printf("\n __________ Logout __________\n");
+	printf("\n[Logout successful]\n");
 }
 
 
