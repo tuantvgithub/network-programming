@@ -11,20 +11,6 @@ extern int sockfd;
 Request createRequest(Opcode op, char* message) {
     Request req;
     req.opcode = op;
-    switch(op) {
-        case USER:
-            strcat(req.message, "USER");
-            break;
-        case LOGIN:
-            strcat(req.message, "LOGIN");
-            break;
-        case REGISTER:
-            strcat(req.message, "REGISTER");
-            break;
-        case LOGOUT:
-            strcat(req.message, "LOGOUT");
-            break;
-    }
     if (strlen(message) > 0) {
         strcat(req.message, " ");
         strcat(req.message, message);
@@ -35,24 +21,10 @@ Request createRequest(Opcode op, char* message) {
 Response createResponse(MessageStatus status, char* message) {
     Response res;
     res.status = status;
-    // switch(status) {
-    //     case USER:
-    //         strcat(res.message, "USER");
-    //         break;
-    //     case LOGIN:
-    //         strcat(res.message, "LOGIN");
-    //         break;
-    //     case REGISTER:
-    //         strcat(res.message, "REGISTER");
-    //         break;
-    //     case LOGOUT:
-    //         strcat(res.message, "LOGOUT");
-    //         break;
-    // }
     if (strlen(message) > 0) {
         strcat(res.message, " ");
+        strcat(res.message, message);
     }
-    strcat(res.message, message);
     return res;
 }
 
@@ -75,7 +47,7 @@ int registerNewAccount(char* username, char* password) {
     strcat(message, password);
 
     Request req = createRequest(REGISTER, message);
-    send(sockfd, req.message, strlen(req.message), 0);
+    sendReq(sockfd, req);
 	return 1;
 }
 
@@ -91,6 +63,54 @@ Opcode getOp(char* op) {
         return LOGOUT;
     }
     return -1;
+}
+
+char *opToString(Opcode op) {
+    switch(op) {
+        case USER:
+            return "USER";
+            break;
+        case LOGIN:
+            return "LOGIN";
+            break;
+        case REGISTER:
+            return "REGISTER";
+            break;
+        case LOGOUT:
+            return "LOGOUT";
+            break;
+    }
+    return NULL;
+}
+
+char *statusToString(MessageStatus status) {
+    switch(status) {
+    case SYNTAX_ERROR:
+        return "01";
+        break;
+    case USERNAME_FOUND:
+        return "11";
+        break;
+    case USERNAME_NOT_FOUND:
+        return "12";
+        break;
+    case LOGIN_FAILED:
+        return "21";
+        break;
+    case LOGIN_SUCCESS:
+        return "22";
+        break;
+    case REGISTER_FAILED:
+        return "31";
+        break;
+    case REGISTER_SUCCESS:
+        return "32";
+        break;
+    case LOGOUT_SUCCESS:
+        return "41";
+        break;
+    }
+    return NULL;
 }
 
 MessageStatus getMessStatus(char* status) {
@@ -115,11 +135,25 @@ MessageStatus getMessStatus(char* status) {
     return atoi(status);
 }
 
-// void sendReq(int sockfd, Request req) {
-//     char 
-//     send(sockfd, req.message, strlen(req.message), 0);
-// }
+void sendReq(int sockfd, Request req) {
+    char s[200];
+    strcpy(s, opToString(req.opcode));
+    if (strlen(req.message) > 0) {
+        strcat(s, " ");
+        strcat(s, req.message);
+    }
+    send(sockfd, s, strlen(s), 0);
+}
 
-// void sendRes(int sockfd, Response res) {
-
-// }
+// Not contain res.data
+void sendRes(int sockfd, Response res) {
+    char s[200];
+    strcpy(s, statusToString(res.status));
+    if (strlen(res.message) > 0) {
+        strcat(s, " ");
+        strcat(s, res.message);
+    }
+    // if (res.data != NULL) {
+    // }
+    send(sockfd, s, strlen(s), 0);
+}

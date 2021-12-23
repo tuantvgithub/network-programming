@@ -40,4 +40,9 @@ int registerNewAccount(char* username, char* password);
 Opcode getOp(char* op);
 MessageStatus getMessStatus(char* messStatus);
 
+char *opToString(Opcode op);
+char *statusToString(MessageStatus status);
+
+void sendReq(int sockfd, Request req);
+void sendRes(int sockfd, Response res);
 #endif // __VALIDATE_H__
