@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "postman.h"
-#include "client.h"
 
 extern int sockfd;
 Request createRequest(Opcode op, char* message) {
@@ -54,6 +53,7 @@ Response createResponse(MessageStatus status, char* message) {
         strcat(res.message, " ");
     }
     strcat(res.message, message);
+    return res;
 }
 
 int login(char* username, char* password) {
