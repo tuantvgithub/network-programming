@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "validate.h"
 #include "postman.h"
 #include "client-ui.h"
@@ -8,9 +9,9 @@
 char currentUsername[100] = "";
 char currentPassword[100] = "";
 
-void homePageScreen() {
+
+void homePageScreen(int sockfd) {
 	int choice;
-	
 	while(1) {
 		printf("\n");
 		printf(" __________ Home_page __________\n");
@@ -42,6 +43,7 @@ void homePageScreen() {
 		if (choice == 0) break;
 	}
 }
+
 
 void loginScreen() {
 	char _username[100] = "";

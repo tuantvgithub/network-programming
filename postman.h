@@ -37,4 +37,7 @@ typedef struct {
 int login(char* username, char* password);
 int registerNewAccount(char* username, char* password);
 
+Opcode getOp(char* op);
+MessageStatus getMessStatus(char* messStatus);
+
 #endif // __VALIDATE_H__
