@@ -6,9 +6,8 @@
 #include <string.h>
 
 #include "client-ui.h"
-#include "postman.h"
-#include "client.h"
 
+int createConnection(char* svIP, char* port);
 extern int sockfd;
 int main(int argc, char** argv) {
     if (argc != 3) {
