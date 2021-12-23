@@ -3,6 +3,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 #include <string.h>
 
 #include "postman.h"
@@ -19,11 +21,16 @@ int main (int argc, char **argv)
     char buf[MAXLINE];
     struct sockaddr_in cliaddr, servaddr;
 
+    if (argc != 2) {
+        perror("Usage: ./server port"); 
+        exit(1);
+    }
+
     //Create a socket for the soclet
     //If sockfd<0 there was an error in the creation of the socket
     if ((listenfd = socket (AF_INET, SOCK_STREAM, 0)) <0) {
-    perror("Problem in creating the socket");
-    exit(2);
+        perror("Problem in creating the socket");
+        exit(2);
     }
 
 
@@ -33,8 +40,11 @@ int main (int argc, char **argv)
     servaddr.sin_port = htons(SERV_PORT);
 
     //bind the socket
-    bind (listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-
+    // int b = bind (listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
+    if (bind (listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+        perror("\nError: ");
+		return 0;
+    }
     //listen to the socket by creating a connection queue, then wait for clients
     listen (listenfd, LISTENQ);
 
@@ -56,9 +66,9 @@ int main (int argc, char **argv)
         close (listenfd);
 
         while ( (n = recv(connfd, buf, MAXLINE,0)) > 0)  {
-        printf("%s","String received from and resent to the client:");
-        puts(buf);
-        send(connfd, buf, n, 0);
+            printf("%s","String received from and resent to the client:");
+            puts(buf);
+            send(connfd, buf, n, 0);
         }
 
         if (n < 0)
@@ -92,7 +102,7 @@ void handleReq(char* req) {
 
         break;
     case REGISTER:
-        
+
         break;
     case LOGOUT:
 

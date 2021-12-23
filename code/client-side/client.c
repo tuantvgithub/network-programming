@@ -3,15 +3,15 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <string.h>
 
 #include "client-ui.h"
+#include "client.h"
 
-int createConnection(char* svIP, char* port);
-extern int sockfd;
 int main(int argc, char** argv) {
     if (argc != 3) {
-        perror("Usage: IPadd Port"); 
+        perror("Usage: ./client ServerIpAddress Port"); 
         exit(1);
     }
     sockfd = createConnection(argv[1], argv[2]);

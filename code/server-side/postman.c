@@ -6,13 +6,13 @@
 #include <string.h>
 
 #include "postman.h"
+#include "../client-side/client.h"
 
 extern int sockfd;
 Request createRequest(Opcode op, char* message) {
     Request req;
     req.opcode = op;
     if (strlen(message) > 0) {
-        strcat(req.message, " ");
         strcat(req.message, message);
     }
     return req;
@@ -22,7 +22,6 @@ Response createResponse(MessageStatus status, char* message) {
     Response res;
     res.status = status;
     if (strlen(message) > 0) {
-        strcat(res.message, " ");
         strcat(res.message, message);
     }
     return res;
