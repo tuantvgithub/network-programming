@@ -1,10 +1,10 @@
 #ifndef __CLIENT_UI_H__
 #define __CLIENT_UI_H__
 
-void homePageScreen();
+void homePageScreen(int sockfd);
 
-void loginScreen();
-void registerScreen();
+void loginScreen(int sockfd);
+void registerScreen(int sockfd);
 
 void exitGameScreen();
 void greetingScreen();

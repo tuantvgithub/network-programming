@@ -2,7 +2,6 @@
 #define __POSTMAN_H__
 
 typedef enum {
-	USER,
 	LOGIN,
 	REGISTER,
 	LOGOUT
@@ -23,21 +22,22 @@ typedef enum {
 	LOGOUT_SUCCESS = 41
 } MessageStatus;
 
-typedef struct {
+struct Request {
 	Opcode opcode;
 	char message[100];
-} Request;
+};
 
-typedef struct {
+struct Response {
 	MessageStatus status;
 	char message[100];
 	char data[100];
-} Response;
+};
 
-int login(char* username, char* password);
-int registerNewAccount(char* username, char* password);
+struct Request* createRequest(Opcode opcode, char* message);
+void sendRequest(int sockfd, struct Request* request, int size, int flags);
 
-Opcode getOp(char* op);
-MessageStatus getMessStatus(char* messStatus);
+struct Response* createResponse(MessageStatus messStatus, char* data);
+void setResponseMessage(struct Response* response);
+void receiveResponse(int sockfd, struct Response* response, int size, int flags);
 
 #endif // __VALIDATE_H__

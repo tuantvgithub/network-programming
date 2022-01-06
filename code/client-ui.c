@@ -19,19 +19,19 @@ void homePageScreen(int sockfd) {
 		printf("| 1. Login                      |\n");
 		printf("| 2. Register                   |\n");
 		printf("| 0. Exit                       |\n");
-		printf("|_______________________________|");
+		printf("|_______________________________|\n");
 		while(1) {
 			printf("--\n");
-			printf("\n---> Your choice: ");
+			printf("---> Your choice: ");
 			scanf("%d", &choice);
 			while(getchar() != '\n');
 			
 			switch (choice) {
 				case 1:
-					loginScreen();
+					loginScreen(sockfd);
 					break;
 				case 2:
-					registerScreen();
+					registerScreen(sockfd);
 					break;
 				case 0:
 					exitGameScreen();
@@ -46,7 +46,7 @@ void homePageScreen(int sockfd) {
 }
 
 
-void loginScreen() {
+void loginScreen(int sockfd) {
 	char _username[100] = "";
 	char _password[100] = "";
 	
@@ -59,24 +59,34 @@ void loginScreen() {
 	
 	printf("---> password: ");
 	scanf("%[^\n]s", _password);
+	while(getchar() != '\n');
 
 	printf("\n");
+
+	char message[100]= "";
+	strcpy(message, _username);
+	strcat(message, " ");
+	strcat(message, _password);
+	struct Request* request = createRequest(LOGIN, message);
+
+	sendRequest(sockfd, request, sizeof(request->message), 0);
+	return;
+	struct Response* response = (struct Response*) malloc(sizeof(struct Response));
+	receiveResponse(sockfd, response, sizeof(response), 0);
 	
-	int loginSuccess = login(_username, _password);
-	if (loginSuccess) {
+	if (response->status == LOGIN_SUCCESS) {
 		strcpy(currentUsername, _username);
 		strcpy(currentPassword, _password);	
 
 		printf("[Login successful]\n");
 		greetingScreen();
-
 		menuScreen();		 
 	}
 	else
 		printf("[Login failed]\n");
 }
 
-void registerScreen() {
+void registerScreen(int sockfd) {
 	char _username[100] = "";
 	char _password[100] = "";
 	
@@ -103,11 +113,11 @@ void registerScreen() {
 		else break;		
 	}
 	
-	int registerSuccess = registerNewAccount(_username, _password);
-	if (registerSuccess)
-		printf("[Registration successful]\n");
-	else
-		printf("[Sorry! registration failed]\n");
+	// int registerSuccess = registerNewAccount(_username, _password);
+	// if (registerSuccess)
+	// 	printf("[Registration successful]\n");
+	// else
+	// 	printf("[Sorry! registration failed]\n");
 }
 
 void exitGameScreen() {
@@ -129,10 +139,10 @@ void menuScreen() {
 		printf("| 2. Join room                  |\n");
 		printf("| 3. Create room                |\n");
 		printf("| 4. Logout                     |\n");
-		printf("|_______________________________|");
+		printf("|_______________________________|\n");
 		while (1) {
 			printf("--\n");
-			printf("\n---> Your choice: ");
+			printf("---> Your choice: ");
 			scanf("%d", &choice);
 			while(getchar() != '\n');
 			
