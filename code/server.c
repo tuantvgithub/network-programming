@@ -8,7 +8,10 @@
 
 #include "postman.h"
 
-#define MAXLINE 4096 /*max text line length*/
+struct Response* handleRequest(int connfd, struct Request* request);
+struct Response* doLogin(int connfd, char* message);
+struct Response* doRegister(int connfd, char* message);
+
 #define LISTENQ 8 /*maximum number of client connections*/
 
 int main (int argc, char **argv) {
@@ -17,10 +20,7 @@ int main (int argc, char **argv) {
         return -1;
     }
 
-    int listenfd, connfd, n;
-    pid_t childpid;
-    socklen_t clilen;
-    char buf[MAXLINE];
+    int listenfd;
     struct sockaddr_in servaddr;
 
     //Create a socket for the soclet
@@ -46,18 +46,44 @@ int main (int argc, char **argv) {
 
     struct sockaddr_in clientAddr;
     int rcvBytes, sendBytes, clientAddrLen = sizeof(clientAddr);
-    char buff[MAXLINE + 1];
+    char buff[1000];
 
-    connfd = accept(listenfd, (struct sockaddr *) &clientAddr, &clientAddrLen);
+    int connfd = accept(listenfd, (struct sockaddr *) &clientAddr, &clientAddrLen);
 	while(1){
-        rcvBytes = recv(connfd, buff, MAXLINE, 0);
+        rcvBytes = recv(connfd, buff, 1000, 0);
         if (rcvBytes < 0)
             perror("Error: ");
         if (rcvBytes > 0) {
             buff[rcvBytes] = '\0';
-            printf("Receive from client[%d:%d] %s\n",
-                    inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port), buff);
+            printf("Receive from client: %s\n", buff);
+            
+            struct Request* request = makeRequestFromBuffer(buff);
+
+            struct Response* response = handleRequest(connfd, request);
+            if (response) sendResponse(connfd, response);
         }
     }
+    close(connfd);
+}
+
+struct Response* handleRequest(int connfd, struct Request* request) {
+    if (!request) return;
+    Opcode opcode = request->opcode;
+
+    switch (opcode) {
+        case LOGIN:
+            return doLogin(connfd, request->message);
+        case REGISTER:
+            return doRegister(connfd, request->message);
+    }
+
+    return NULL;
+}
+
+struct Response* doLogin(int connfd, char* message) {
+    
+}
+
+struct Response* doRegister(int connfd, char* message) {
 
 }

@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "validate.h"
-#include "../server-side/postman.h"
+#include "postman.h"
 #include "client-ui.h"
 
 char currentUsername[100] = "";
@@ -69,10 +69,10 @@ void loginScreen(int sockfd) {
 	strcat(message, _password);
 	struct Request* request = createRequest(LOGIN, message);
 
-	sendRequest(sockfd, request, sizeof(request->message), 0);
-	return;
+	sendRequest(sockfd, request);
+
 	struct Response* response = (struct Response*) malloc(sizeof(struct Response));
-	receiveResponse(sockfd, response, sizeof(response), 0);
+	receiveResponse(sockfd, response);
 	
 	if (response->status == LOGIN_SUCCESS) {
 		strcpy(currentUsername, _username);

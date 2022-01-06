@@ -8,19 +8,13 @@ typedef enum {
 } Opcode;
 
 typedef enum {
-	SYNTAX_ERROR = 01,
-	
-	USERNAME_FOUND = 11,
-	USERNAME_NOT_FOUND = 12,
+	OK = 01,
+
+	SYNTAX_ERROR = 11,
 	
 	LOGIN_FAILED = 21,
-	LOGIN_SUCCESS = 22,
-	
-	REGISTER_FAILED = 31,
-	REGISTER_SUCCESS = 32,
-	
-	LOGOUT_SUCCESS = 41
-} MessageStatus;
+	LOGIN_SUCCESS = 22
+} ResponseStatus;
 
 struct Request {
 	Opcode opcode;
@@ -28,16 +22,28 @@ struct Request {
 };
 
 struct Response {
-	MessageStatus status;
+	ResponseStatus status;
 	char message[100];
-	char data[100];
+	char data[1000];
 };
 
+/* Functions to handle with Request */
 struct Request* createRequest(Opcode opcode, char* message);
-void sendRequest(int sockfd, struct Request* request, int size, int flags);
 
-struct Response* createResponse(MessageStatus messStatus, char* data);
+void sendRequest(int sockfd, struct Request* request);
+
+char* makeBufferFromRequest(struct Request* request);
+struct Request* makeRequestFromBuffer(char* buff);
+/* End */
+
+/* Functions to handle with Response */
+struct Response* createResponse(ResponseStatus status, char* message);
 void setResponseMessage(struct Response* response);
-void receiveResponse(int sockfd, struct Response* response, int size, int flags);
+
+void sendResponse(int sockfd, struct Response* response);
+
+char* makeBufferFromResponse(struct Response* response);
+struct Response* makeResponseFromBuffer(char* buff);
+/* End */
 
 #endif // __VALIDATE_H__
