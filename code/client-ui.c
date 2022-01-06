@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "validate.h"
-#include "../server-side/postman.h"
+#include "postman.h"
 #include "client-ui.h"
 
 char currentUsername[100] = "";
@@ -70,7 +70,7 @@ void loginScreen(int sockfd) {
 	struct Request* request = createRequest(LOGIN, message);
 
 	sendRequest(sockfd, request, sizeof(request->message), 0);
-	return;
+	// return;
 	struct Response* response = (struct Response*) malloc(sizeof(struct Response));
 	receiveResponse(sockfd, response, sizeof(response), 0);
 	
@@ -80,7 +80,7 @@ void loginScreen(int sockfd) {
 
 		printf("[Login successful]\n");
 		greetingScreen();
-		menuScreen();		 
+		menuScreen(sockfd);		 
 	}
 	else
 		printf("[Login failed]\n");
@@ -128,7 +128,7 @@ void greetingScreen() {
 	printf("\n[Hello %s]\n", currentUsername);
 }
 
-void menuScreen() {
+void menuScreen(int sockfd) {
 	int choice = 0;	
 	
 	while(1) {
@@ -148,13 +148,13 @@ void menuScreen() {
 			
 			switch (choice) {
 				case 1:
-					listRoomScreen();
+					listRoomScreen(sockfd);
 					break;
 				case 2:
-					joinRoomScreen();
+					joinRoomScreen(sockfd);
 					break;
 				case 3:
-					createRoomScreen();
+					createRoomScreen(sockfd);
 					break;
 				case 4:
 					logoutScreen();
@@ -168,23 +168,123 @@ void menuScreen() {
 	}
 }
 
-void listRoomScreen() {
+void listRoomScreen(int sockfd) {
+	struct Request *req = createRequest(LIST_ROOM, "");
+	sendRequest(sockfd, req, 0, 0);
+
+	struct Response *res = (struct Response*) malloc(sizeof(struct Response));
+	receiveResponse(sockfd, res, 0, 0);
+
 	printf("\n __________ List room __________\n");
+	printf("%s\n", res->data);
+	printf("....................................\n");
 }
 
-void joinRoomScreen() {
+void joinRoomScreen(int sockfd) {
+	char room_name[100] = "";
 	printf("\n __________ Join room __________\n");	
+	printf("-->Type room name: ");
+	scanf("%[^\n]", room_name);
+	while(getchar() != '\n');
+
+
+	struct Request *req = createRequest(JOINT_ROOM, room_name);
+	sendRequest(sockfd, req, 0, 0);
+
+	struct Response *res = (struct Response*) malloc(sizeof(struct Response));
+	receiveResponse(sockfd, res, 0, 0);
+
+	if (res->status == JOINT_ROOM_SUCCESS) {
+		printf("\n[JOINT_ROOM_SUCCESS]\n");
+		startGame(sockfd);
+
+	} else if (res->status == JOINT_ROOM_FAIL){
+		printf("\n[JOINT_ROOM_FAIL]\n");
+	}
+
 }
 
-void createRoomScreen() {
+void startGame(int sockfd) {
+	int choice = 0;
+	printf("\n---------------------------------------------\n");
+	printf("\nDo you want start game?\n");
+	printf("--- 1. YES\n");
+	printf("--- 2. NO\n\n");
+	while(1) {
+		printf("--> Your choice: ");
+		scanf("%d", &choice);
+		while(getchar() != '\n');
+		if (choice > 0 && choice < 3) break;
+	}
+
+	switch (choice) {
+		case 1:
+			printf("\n[gaming]\n");
+			struct Request *req = createRequest(START_GAME, "");
+			sendRequest(sockfd, req, 0, 0);
+
+			struct Response *res = (struct Response*) malloc(sizeof(struct Response));
+			receiveResponse(sockfd, res, 0, 0);
+
+			if (res->status == START_GAME_SUCCESS) {
+				int num_questions = atoi(res->data);
+				// getQuesAndAnswer(sockfd, num_questions);
+			} else {
+
+			}
+			break;
+		case 2:
+
+			break;
+	}
+}
+
+void createRoomScreen(int sockfd) {
+
+	char room_name[100] = "";
 	printf("\n __________ Create room __________\n");
+	printf("-->Type room name: ");
+	scanf("%[^\n]", room_name);
+	while(getchar() != '\n');
+
+
+	struct Request *req = createRequest(CREATE_ROOM, room_name);
+	sendRequest(sockfd, req, 0, 0);
+
+	struct Response *res = (struct Response*) malloc(sizeof(struct Response));
+	receiveResponse(sockfd, res, 0, 0);
+
+	if (res->status == CREATE_ROOM_SUCCESS) {
+		printf("\n[CREATE_ROOM_SUCCESS]\n");
+
+	} else if (res->status == CREATE_ROOM_FAIL){
+		printf("\n[CREATE_ROOM_FAIL] \n");
+	}
 }
 
 void logoutScreen() {
 	printf("\n[Logout successful]\n");
 }
 
+int parseStringQuestion(char *question, char *ques, char choices[][100]) {
+	if (question == NULL || ques == NULL || choices == NULL) {
+		return 0;
+	}
 
+	strcpy(ques, strtok(question, "|"));
+	strcpy(choices[0], strtok(NULL, "|"));
+	strcpy(choices[1], strtok(NULL, "|"));
+	strcpy(choices[2], strtok(NULL, "|"));
+	strcpy(choices[3], strtok(NULL, "|"));
+}
+
+// int main() {
+// 	char q[200] = "question 1|c1|c2|c3|c4|";
+// 	char ques[200] = "";
+// 	char choices[4][100] = {"", "", "", ""};
+
+// 	parseStringQuestion(q, ques, choices);
+// }
 
 
 

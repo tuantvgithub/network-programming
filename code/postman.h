@@ -4,6 +4,10 @@
 typedef enum {
 	LOGIN,
 	REGISTER,
+	LIST_ROOM, 
+	JOINT_ROOM,
+	CREATE_ROOM,
+	START_GAME,
 	LOGOUT
 } Opcode;
 
@@ -19,7 +23,19 @@ typedef enum {
 	REGISTER_FAILED = 31,
 	REGISTER_SUCCESS = 32,
 	
-	LOGOUT_SUCCESS = 41
+	LOGOUT_SUCCESS = 41, 
+
+	LIST_ROOM_SUCCESS = 51,
+	LIST_ROOM_FAIL = 52,
+
+	JOINT_ROOM_SUCCESS = 61,
+	JOINT_ROOM_FAIL = 62,
+
+	CREATE_ROOM_SUCCESS = 71,
+	CREATE_ROOM_FAIL = 72,
+
+	START_GAME_SUCCESS = 81,
+	START_GAME_FAIL = 82
 } MessageStatus;
 
 struct Request {
@@ -35,9 +51,11 @@ struct Response {
 
 struct Request* createRequest(Opcode opcode, char* message);
 void sendRequest(int sockfd, struct Request* request, int size, int flags);
+void receiveRequest(int sockfd, struct Request* request, int size, int flags);
 
 struct Response* createResponse(MessageStatus messStatus, char* data);
 void setResponseMessage(struct Response* response);
+void sendResponse(int sockfd, struct Response* response);
 void receiveResponse(int sockfd, struct Response* response, int size, int flags);
 
 #endif // __VALIDATE_H__
