@@ -8,29 +8,29 @@
 #include <unistd.h>
 
 #include "postman.h"
+#include "storage.h"
+#include "utils.h"
 #include "server.h"
 
 #define MAXLINE 4096 /*max text line length*/
-#define LISTENQ 8 /*maximum number of client connections*/
+#define LISTENQ 5 /*maximum number of client connections*/
 
 int main (int argc, char **argv) {
     if (argc != 2) {
-        perror("Usage: IPadd"); 
-        return -1;
+        perror("Usage: ./server portNumber"); 
+        exit(1);
     }
 
-    int listenfd, connfd, n;
-    pid_t childpid;
-    socklen_t clilen;
-    char buf[MAXLINE];
-    struct sockaddr_in servaddr;
+    int listenfd;
 
     //Create a socket for the soclet
     //If sockfd<0 there was an error in the creation of the socket
     if ((listenfd = socket (AF_INET, SOCK_STREAM, 0)) <0) {
         perror("Problem in creating the socket");
-        return -1;
+        exit(1);
     }
+
+    struct sockaddr_in servaddr;
 
     //preparation of the socket address
     bzero(&servaddr, sizeof(servaddr));
@@ -44,69 +44,113 @@ int main (int argc, char **argv) {
     //listen to the socket by creating a connection queue, then wait for clients
     listen (listenfd, LISTENQ);
 
-    printf("%s\n","Server started!");
+    printf("Server running...waiting for connections.\n");
 
     struct sockaddr_in clientAddr;
-    int rcvBytes, sendBytes, clientAddrLen = sizeof(clientAddr);
+    socklen_t clientAddrLen = sizeof(clientAddr);
+    int connfd, rcvBytes = sizeof(clientAddr);
     char buff[MAXLINE + 1];
+    pid_t childpid;
 
-    connfd = accept(listenfd, (struct sockaddr *) &clientAddr, &clientAddrLen);
-	while(1){
-        // rcvBytes = recv(connfd, buff, MAXLINE, 0);
-        // if (rcvBytes < 0)
-        //     perror("Error: ");
-        // if (rcvBytes > 0) {
-        //     buff[rcvBytes] = '\0';
-        // }
+    while (1) {
+        // accept a connection
+        connfd = accept(listenfd, (struct sockaddr *) &clientAddr, &clientAddrLen);
 
-        struct Request *req = (struct Request*) malloc(sizeof(struct Request));
-        printf("Receive from client[%s:%d] ",
-                inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-        receiveRequest(connfd, req, 0, 0);
-        handleRequest(connfd, req);
+        if ((childpid = fork()) == 0) {
+            close(listenfd);
+
+            while ((rcvBytes = recv(connfd, buff, MAXLINE, 0)) > 0){
+                buff[rcvBytes] = '\0';
+                printf("Receive from client[%s:%d]: %s\n",inet_ntoa(clientAddr.sin_addr), 
+                                    ntohs(clientAddr.sin_port), buff);
+
+                struct Request* req = NULL;
+                receiveRequest(connfd, req);
+                
+                struct Response* res = handleRequest(connfd, req);
+                sendResponse(connfd, res);
+            }
+            if (rcvBytes < 0)
+                printf("Read error\n\n");
+            exit(1);
+        }
     }
-
 }
 
-void handleRequest(int sockfd, struct Request *request) {
-    struct Response *response;
+struct Response* handleRequest(struct Request *request) {
+    if (!req || !req->message) 
+        return createResponse(SYNTAX_ERROR, NULL);
+
     switch (request->opcode) {
         case LOGIN:
-            // todo ->> check account ...
-            response = createResponse(LOGIN_SUCCESS, "");
-            sendResponse(sockfd, response);
-            break;
-        case REGISTER:
-            // todo ->> check account ....
-            response = createResponse(REGISTER_SUCCESS, "");
-            sendResponse(sockfd, response);
-            break;
-        case LIST_ROOM:
-            // todo ->> pass list room?
-            response = createResponse(LIST_ROOM_SUCCESS, "room1\nroom2\nroom3");
-            sendResponse(sockfd, response);
-            break;
-        case JOINT_ROOM:
-            
-            // Todo ->> check room_name exist
-            response = createResponse(JOINT_ROOM_SUCCESS, "");
-            sendResponse(sockfd, response);
-            break;
-        case CREATE_ROOM:
-            // todo ->> check room_name exist ?? 
-            response = createResponse(CREATE_ROOM_SUCCESS, "");
-            sendResponse(sockfd, response);
-            break;
-
-        case START_GAME:
-            // todo -->> số câu hỏi?? gửi từng câu?
-            // char num_ques[10] = "2";
-            response = createResponse(START_GAME_SUCCESS, "2");
-            sendResponse(sockfd, response);
-            break;
+            return login(request);
         case LOGOUT:
+            return logout(request);
+        case REGISTER:
+            return doRegister(request);
+        case LR:
+            return listRoom(request);
+    }
+}
 
-            break;
+struct Response* login(struct Request* req) {    
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+    if (n != 2)
+        return createResponse(SYNTAX_ERROR, NULL);
+    
+    struct Account* account = getAccountByUsername(tokens[0]);
+    if (!account || strcmp(account->password, tokens[1]))
+        return createResponse(LOGIN_FAILED, NULL);
+
+    // TODO add account to active account list
+
+    return createResponse(LOGIN_SUCCESS, NULL);
+}
+
+struct Response* logout(struct Request* req) {
+    // TODO delete account from active account list
+
+    return createResponse(OK, NULL);
+}
+
+struct Response* doRegister(struct Request* req) {
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+    if (n != 2)
+        return createResponse(SYNTAX_ERROR, NULL);
+    
+    struct Account* account = getAccountByUsername(tokens[0]);
+    if (account)
+        return createResponse(REGISTER_FAILED, NULL);
+    
+    if (saveAccount(tokens[0], tokens[1]) < 0)
+        return createResponse(SERVER_ERROR, NULL);
+
+    return createResponse(REGISTER_SUCCESS, NULL);    
+}
+
+struct Response* listRoom(struct Request* req) {
+    struct Room* roomArr = NULL;
+    int roomArrSize = loadAllRooms(roomArr);   
+
+    if (roomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
+    if (roomArrSize == 0) return createResponse(NO_CONTENT, NULL);
+
+    struct Room* onRoomArr = NULL;
+    int onRoomArrSize = getAllOnRooms(roomArr, roomArrSize, onRoomArr);
+    if (onRoomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
+    if (onRoomArrSize == 0) return createResponse(NO_CONTENT, NULL);
+
+    char data[1000] = "";
+    for (int i = 0; i < onRoomArrSize; i++) {
+        strcat(data, onRoomArr[i].roomName);
+        strcat(data, " ");
+        strcat(data, onRoomArr[i].hostName);
+        strcat(data, " ");
+        strcat(data, onRoomArr[i].numOfPlayer);
+        strcat(data, "|");              
     }
 
+    return createResponse(OK, data);
 }

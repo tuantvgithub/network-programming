@@ -1,9 +1,9 @@
 all:  client server
 
 client : client.o validate.o client-ui.o postman.o
-	gcc client.o validate.o client-ui.o postman.o -o client 
-server : server.o storage.o postman.o 
-	gcc server.o storage.o postman.o -o server
+	gcc client.o validate.o client-ui.o postman.o -o client
+server : server.o storage.o postman.o utils.o
+	gcc server.o storage.o postman.o utils.o -o server
 
 client.o : client.c
 	gcc -c client.c
@@ -15,6 +15,8 @@ postman.o : postman.c
 	gcc -c postman.c
 storage.o : storage.c
 	gcc -c storage.c
+utils.o: utils.c
+	gcc -c utils.c
 server.o : server.c
 	gcc -c server.c
 

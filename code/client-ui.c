@@ -6,285 +6,243 @@
 #include "postman.h"
 #include "client-ui.h"
 
-char currentUsername[100] = "";
-char currentPassword[100] = "";
+char username[100];
+char password[100];
 
+enum Phase currentPhase = NOT_LOGGED_IN;
 
-void homePageScreen(int sockfd) {
-	int choice;
-	while(1) {
-		printf("\n");
-		printf(" __________ Home_page __________\n");
-		printf("|                               |\n");
-		printf("| 1. Login                      |\n");
-		printf("| 2. Register                   |\n");
-		printf("| 0. Exit                       |\n");
-		printf("|_______________________________|\n");
-		while(1) {
-			printf("--\n");
-			printf("---> Your choice: ");
-			scanf("%d", &choice);
-			while(getchar() != '\n');
-			
-			switch (choice) {
-				case 1:
-					loginScreen(sockfd);
-					break;
-				case 2:
-					registerScreen(sockfd);
-					break;
-				case 0:
-					exitGameScreen();
-					break;
-				default:
-					printf("[Error! try again]");
-			}
-			if (choice > -1 && choice < 3) break;
-		}
-		if (choice == 0) break;
-	}
+void displayIntroScreen() {
+	printf("Welcome to the Quizizz game monitor.\n");
+	printf("Your UI version: CLI-1.1.0\n\n");
+
+	printf("Copyright (c) 2021, 2022 - Network programming - final project - team 14.\n\n");
+
+	printf("Type 'help' for help. Type 'quit' for quit.\n\n");
 }
 
+void runCLI(int sockfd) {
+	displayIntroScreen();
 
-void loginScreen(int sockfd) {
-	char _username[100] = "";
-	char _password[100] = "";
-	
-	printf("\n __________ Login __________\n");
-	
-	printf("--\n");
-	printf("---> username: ");
-	scanf("%[^\n]s", _username);
-	while(getchar() != '\n');
-	
-	printf("---> password: ");
-	scanf("%[^\n]s", _password);
-	while(getchar() != '\n');
-
-	printf("\n");
-
-	char message[100]= "";
-	strcpy(message, _username);
-	strcat(message, " ");
-	strcat(message, _password);
-	struct Request* request = createRequest(LOGIN, message);
-
-	sendRequest(sockfd, request, sizeof(request->message), 0);
-	// return;
-	struct Response* response = (struct Response*) malloc(sizeof(struct Response));
-	receiveResponse(sockfd, response, sizeof(response), 0);
-	
-	if (response->status == LOGIN_SUCCESS) {
-		strcpy(currentUsername, _username);
-		strcpy(currentPassword, _password);	
-
-		printf("[Login successful]\n");
-		greetingScreen();
-		menuScreen(sockfd);		 
-	}
-	else
-		printf("[Login failed]\n");
-}
-
-void registerScreen(int sockfd) {
-	char _username[100] = "";
-	char _password[100] = "";
-	
-	printf("\n __________ Register _________\n");
-	
-	while(1) {
-		printf("--\n");
-		printf("---> username: ");
-		scanf("%[^\n]s", _username);
+	char command[100];
+	do {
+		printf("quizizz> "); scanf("%[^\n]s", command);
 		while(getchar() != '\n');
 
-		if (validateUsername(_username) == 0)
-			printf("[Try again]\n");
-		else break;
+		handleCommand(sockfd, command);
+	} while(strcmp(command, "quit"));
+}
+
+int splitCommand(char* command, char* commandName, char** argv) {
+	if (!command || !commandName || !argv) return -1;
+
+	char* token = strtok(command, " ");
+	if (token) strcpy(commandName, token);
+
+	int argc = 0;
+	token = strtok(NULL, " ");
+	while (token) {
+		argv[argc] = (char*) malloc(sizeof(char) * 100);
+		strcpy(argv[argc], token);
+
+		argc++;
+		token = strtok(NULL, " ");	
 	}
+
+	return argc;
+}
+
+int commandIsValid(char* commandName) {
+	// TODO - check command by current phase
 	
-	while(1) {
-		printf("---> password: ");
-		scanf("%[^\n]s", _password);
-		while(getchar() != '\n');
-		
-		if (validatePassword(_password) == 0)
-			printf("[Try again]\n");
-		else break;		
-	}
-	
-	// int registerSuccess = registerNewAccount(_username, _password);
-	// if (registerSuccess)
-	// 	printf("[Registration successful]\n");
-	// else
-	// 	printf("[Sorry! registration failed]\n");
+	return 1;
 }
 
-void exitGameScreen() {
-	printf("\n[Bye!]\n\n");
-}
+void handleCommand(int sockfd, char* command) {
+	char commandName[50];
+	char* argv[10];
+	int argc = splitCommand(command, commandName, argv);
 
-void greetingScreen() {
-	printf("\n[Hello %s]\n", currentUsername);
-}
+	if (commandIsValid(commandName) < 0) return;
 
-void menuScreen(int sockfd) {
-	int choice = 0;	
-	
-	while(1) {
-		printf("\n");
-		printf(" ___________ Menu ______________\n");
-		printf("|                               |\n");	
-		printf("| 1. List room                  |\n");
-		printf("| 2. Join room                  |\n");
-		printf("| 3. Create room                |\n");
-		printf("| 4. Logout                     |\n");
-		printf("|_______________________________|\n");
-		while (1) {
-			printf("--\n");
-			printf("---> Your choice: ");
-			scanf("%d", &choice);
-			while(getchar() != '\n');
-			
-			switch (choice) {
-				case 1:
-					listRoomScreen(sockfd);
-					break;
-				case 2:
-					joinRoomScreen(sockfd);
-					break;
-				case 3:
-					createRoomScreen(sockfd);
-					break;
-				case 4:
-					logoutScreen();
-					break;
-				default:
-					printf("[Error! try again]\n");
-			}
-			if (choice > 0 && choice < 5) break;
-		}
-		if (choice == 4) break;
-	}
-}
-
-void listRoomScreen(int sockfd) {
-	struct Request *req = createRequest(LIST_ROOM, "");
-	sendRequest(sockfd, req, 0, 0);
-
-	struct Response *res = (struct Response*) malloc(sizeof(struct Response));
-	receiveResponse(sockfd, res, 0, 0);
-
-	printf("\n __________ List room __________\n");
-	printf("%s\n", res->data);
-	printf("....................................\n");
-}
-
-void joinRoomScreen(int sockfd) {
-	char room_name[100] = "";
-	printf("\n __________ Join room __________\n");	
-	printf("-->Type room name: ");
-	scanf("%[^\n]", room_name);
-	while(getchar() != '\n');
-
-
-	struct Request *req = createRequest(JOINT_ROOM, room_name);
-	sendRequest(sockfd, req, 0, 0);
-
-	struct Response *res = (struct Response*) malloc(sizeof(struct Response));
-	receiveResponse(sockfd, res, 0, 0);
-
-	if (res->status == JOINT_ROOM_SUCCESS) {
-		printf("\n[JOINT_ROOM_SUCCESS]\n");
-		startGame(sockfd);
-
-	} else if (res->status == JOINT_ROOM_FAIL){
-		printf("\n[JOINT_ROOM_FAIL]\n");
-	}
-
-}
-
-void startGame(int sockfd) {
-	int choice = 0;
-	printf("\n---------------------------------------------\n");
-	printf("\nDo you want start game?\n");
-	printf("--- 1. YES\n");
-	printf("--- 2. NO\n\n");
-	while(1) {
-		printf("--> Your choice: ");
-		scanf("%d", &choice);
-		while(getchar() != '\n');
-		if (choice > 0 && choice < 3) break;
-	}
-
-	switch (choice) {
+	switch(argc) {
+		case 0:
+			handleCommandNoArgument(sockfd, commandName);
+			break;
 		case 1:
-			printf("\n[gaming]\n");
-			struct Request *req = createRequest(START_GAME, "");
-			sendRequest(sockfd, req, 0, 0);
-
-			struct Response *res = (struct Response*) malloc(sizeof(struct Response));
-			receiveResponse(sockfd, res, 0, 0);
-
-			if (res->status == START_GAME_SUCCESS) {
-				int num_questions = atoi(res->data);
-				// getQuesAndAnswer(sockfd, num_questions);
-			} else {
-
-			}
+			handleCommandOneArgument(sockfd, commandName, argv);
 			break;
 		case 2:
-
+			handleCommandTwoArguments(sockfd, commandName, argv);
 			break;
+		default:
+			printf("ERROR: Syntax error\n");
+			printf("Please try to run 'help' for help.\n\n");
 	}
 }
 
-void createRoomScreen(int sockfd) {
+void handleCommandNoArgument(int sockfd, char* commandName) {
+	if (!strcmp(commandName, "help"))
+		handleHelpCommand(NULL);
 
-	char room_name[100] = "";
-	printf("\n __________ Create room __________\n");
-	printf("-->Type room name: ");
-	scanf("%[^\n]", room_name);
-	while(getchar() != '\n');
+	else if (!strcmp(commandName, "quit"))
+		handleQuitCommand();
 
+	else if (!strcmp(commandName, "logout"))
+		handleLogoutCommand(sockfd);
 
-	struct Request *req = createRequest(CREATE_ROOM, room_name);
-	sendRequest(sockfd, req, 0, 0);
+	else if (!strcmp(commandName, "lr"))
+		handleLRCommand(sockfd);
 
-	struct Response *res = (struct Response*) malloc(sizeof(struct Response));
-	receiveResponse(sockfd, res, 0, 0);
+	else if (!strcmp(commandName, "start"))
+		handleStartCommand(sockfd);
+	
+	else printf("ERROR: Syntax error\n\n");
+}
 
-	if (res->status == CREATE_ROOM_SUCCESS) {
-		printf("\n[CREATE_ROOM_SUCCESS]\n");
+void handleLRCommand(int sockfd) {
+	struct Request* req = createRequest(LR, NULL);
+	sendRequest(sockfd, request);
 
-	} else if (res->status == CREATE_ROOM_FAIL){
-		printf("\n[CREATE_ROOM_FAIL] \n");
+	struct Response* res = NULL;
+	receiveResponse(sockfd, res);
+
+	if (!res) {
+		printf("ERROR: can't receive response from server\n\n");
+		return;
+	}
+
+	if (res->status == OK) {
+		char* rooms[40];
+		int n = split(res->data, "|", rooms);
+
+		for (int i = 0; i < n; i++) {
+			char* tokens[20];
+			int m = split(rooms[i], " ", tokens);
+			
+			if (m != 3) {
+				printf("Warning: have a problem in handleLRCommand() method\n\n");
+				exit(1);
+			}
+
+			printf("------------- %s\n", tokens[0]); 	// room name
+			printf("- host: %s\n", tokens[1]); 			// host name
+			printf("- player: %s\n\n", tokens[2]); 		// number of player
+		}
+	}
+	printf("%s\n\n", res->message);
+}
+
+void handleStartCommand(int sockfd) {
+	currentPhase = PLAY_GAME;
+	// TODO - send request to start game
+}
+
+void handleQuitCommand() {
+	printf("\nBye\n");
+}
+
+void handleLogoutCommand(int sockfd) {
+	struct Request* req = createRequest(LOGOUT, username);
+	sendRequest(sockfd, req);
+
+	struct Response* res = NULL;
+	receiveResponse(sockfd, res);
+	
+	if (!res) {
+		printf("ERROR: can't receive response from server\n\n");
+		return;
+	}
+	if (res->status == OK) printf("Logout successful\n\n");
+
+	strcpy(username, "");
+	strcpy(password, "");
+	currentPhase = NOT_LOGGED_IN;
+}
+
+void handleCommandOneArgument(int sockfd, char* commandName, char** argv) {
+	if (!strcmp(commandName, "help"))
+		handleHelpCommand(commandName);
+
+	else if (!strcmp(commandName, "join"))
+		handleJoinCommand(sockfd, argv);
+
+	else if (!strcmp(commandName, "answer"))
+		handleAnswerCommand(sockfd, argv);
+	
+	else printf("ERROR: Syntax error\n\n");
+}
+
+void handleHelpCommand(char* commandName) {
+	if (!commandName) {
+		// TODO - show all help
+	} else {
+		// TODO - show detail help for commandName
 	}
 }
 
-void logoutScreen() {
-	printf("\n[Logout successful]\n");
+void handleJoinCommand(int sockfd, char** argv) {
+	// TODO - request to join into a room
+
+	currentPhase = JOINED_ROOM;
 }
 
-int parseStringQuestion(char *question, char *ques, char choices[][100]) {
-	if (question == NULL || ques == NULL || choices == NULL) {
-		return 0;
+void handleAnswerCommand(int sockfd, char** argv) {
+	// TODO - request to submit answer
+}
+
+void handleCommandTwoArguments(int sockfd, char* commandName, char** argv) {
+
+}
+
+void handleLoginCommand(int sockfd, char** argv) {
+	char message[100];
+	strcpy(message, argv[0]);
+	strcat(message, " ");
+	strcat(message, argv[1]);
+
+	struct Request* req = createRequest(LOGIN, message);
+	sendRequest(sockfd, req);
+
+	struct Response* res = NULL;
+	receiveResponse(sockfd, res);
+	
+	if (!res) {
+		printf("ERROR: can't receive response from server\n\n");
+		return;
 	}
 
-	strcpy(ques, strtok(question, "|"));
-	strcpy(choices[0], strtok(NULL, "|"));
-	strcpy(choices[1], strtok(NULL, "|"));
-	strcpy(choices[2], strtok(NULL, "|"));
-	strcpy(choices[3], strtok(NULL, "|"));
+	if (res->status == LOGIN_SUCCESS) {
+		strcpy(username, argv[0]);
+		strcpy(password, argv[1]);
+		currentPhase = LOGGED_IN;
+	}
+	
+	printf("%s\n\n", res->message);
 }
 
-// int main() {
-// 	char q[200] = "question 1|c1|c2|c3|c4|";
-// 	char ques[200] = "";
-// 	char choices[4][100] = {"", "", "", ""};
+void handleRegisterCommand(int sockfd, char** argv) {
+	char message[100];
+	strcpy(message, argv[0]);
+	strcat(message, " ");
+	strcat(message, argv[1]);
 
-// 	parseStringQuestion(q, ques, choices);
-// }
+	struct Request* req = createRequest(REGISTER, message);
+	sendRequest(sockfd, req);
+
+	struct Response* res = NULL;
+	receiveResponse(sockfd, res);
+	
+	if (!res) {
+		printf("ERROR: can't receive response from server\n\n");
+		return;
+	}
+
+	printf("%s\n\n", res->message);
+}
+
+void handleCRCommand(int sockfd, char** argv) {
+	// TODO - request to create room
+}
 
 
 

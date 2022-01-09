@@ -8,7 +8,6 @@ int saveAccount(char* username, char* password) {
     FILE* accountStorage = fopen(ACCOUNT_STORAGE_PATH, "a");
 
     if (accountStorage == NULL) return -1;
-    if (getAccountByUsername(username) != NULL) return -1;
 
     fprintf(accountStorage, "\n%s %s", username, password);
 
@@ -91,23 +90,43 @@ List getAllQuestion(char *ques_file) {
     return l;
 }
 
-List getAllRoom(char *room_file) {
-    FILE *f = fopen(room_file, "r");
-    List l = newList();
-    if (f == NULL)  return l;
+int loadAllRooms(struct Room* output) {
+    if (!output) output = (struct Room*) malloc(sizeof(struct Room) * 20);
+    
+    int count = 0;
+    FILE *f = fopen(ROOM_STORAGE_PATH, "r");
+    if (f == NULL || !output)  return -1;
 
-    struct Room *r;
-    char r_name[100];
-    while (fscanf(f, "%[^\n]s", r_name) != EOF) {
-        r = (struct Room*) malloc(sizeof(struct Room));
-        strcpy(r->name, r_name);
-        addEnd(&l, r);
+	char roomName[45]; 
+	int status;
+	char questionsFile[45];
+	char hostName[45];
+	int numOfPlayer;
+
+    while (fscanf(f, "%s %d %s %s %d", roomName, &status, 
+                            questionsFile, hostName, &numOfPlayer) != EOF) {
+        struct Room tmp;
+        tmp.status = status;
+        tmp.numOfPlayer = numOfPlayer;
+        strcpy(tmp.roomName, roomName);
+        strcpy(tmp.questionsFile, questionsFile);
+        strcpy(tmp.hostName, hostName);
+
+        for (int i = 0; i < numOfPlayer) {
+            tmp.players[i] = (char*) malloc(sizeof(char) * 45);
+            fscanf(f, "%s", tmp.players[i]);
+        }
+
+        output[count++] = tmp;
     }
+
     fclose(f);
-    return l;
+    return count;
 }
 
-// int main() {
-//     List quesL = getAllQuestion("question.txt");
-//     printf("ques count: %d..\n", quesL.count);
-// }
+int getAllOnRooms(struct Room* roomArr, int size, struct Room* output) {
+    if (!roomArr) return -1;
+    if (!output) output = (struct Room*) malloc(sizeof(struct Room) * 20);
+    
+    
+}

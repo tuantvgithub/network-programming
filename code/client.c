@@ -9,15 +9,15 @@
 
 int main(int argc, char** argv) {
     if (argc != 3) {
-        perror("Usage: ./client IPAddress PortNumber\n"); 
-        return -1;
+        printf("Usage: ./client IPAddress PortNumber\n"); 
+        exit(1);
     }
 
     int sockfd;
 
     if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) <0) {
         perror("Error: ");
-        return -1;
+        exit(1);
     }
         
     struct sockaddr_in servaddr;
@@ -29,10 +29,10 @@ int main(int argc, char** argv) {
 
     if (connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr))<0) {
         perror("Error: ");
-        return -1;
+       exit(1);
     }
 
-	homePageScreen(sockfd);
+    runCLI(sockfd);
 
 	return 0;
 }

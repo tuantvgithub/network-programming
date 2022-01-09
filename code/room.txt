@@ -1,0 +1,6 @@
+room1 1 exam1.txt host 2
+user1
+user2
+room2 0 exam2.txt host2 2
+user3
+user4

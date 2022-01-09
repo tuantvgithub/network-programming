@@ -2,12 +2,17 @@
 #define __STORAGE_H__
 
 #define ACCOUNT_STORAGE_PATH "account.txt"
-#define QUESTION_STORAGE_PATH "question.txt"
+#define ROOM_STORAGE_PATH "room.txt"
 
 struct Account {
 	char username[45];
 	char password[45];
+	int connfd;
 };
+
+int saveAccount(char* username, char* password);
+struct Account* getAccountByUsername(char* username);
+
 
 struct Question {
 	int id;
@@ -16,35 +21,34 @@ struct Question {
 	char answer[100];
 };
 
+
 struct Room {
-	char name[100]; 
+	char roomName[45]; 
+	int status;
+	char questionsFile[45];
+	char hostName[45];
+	int numOfPlayer;
+	char* players[10];
 };
 
-struct node {
-    void *value;
-    struct node *next;
-};
-typedef struct node* Node;
+int loadAllRooms(struct Room* roomArr);
+int getAllOnRooms(struct Room* roomArr, int size, struct Room* output);
 
-typedef struct list {
-    Node head;
+struct LLNode {
+    void* value;
+    struct LLNode* next;
+};
+
+struct LList {
+    struct LLNode* head;
     int count;
-} List;
+};
 
 
-Node createNode(void* value);
-List newList();
-void addEnd(List* l, void* value);
+struct LList* initLList();
+struct Node* createAccountNode(struct Account);
+void addEnd(struct LList* ll, void* value);
 
 List getAllQuestion(char *ques_file);
-List getAllRoom(char *room_file);
-
-
-int saveAccount(char* username, char* password);
-struct Account* getAccountByUsername(char* username);
-
-
-
-
 
 #endif // __STORAGE_H__

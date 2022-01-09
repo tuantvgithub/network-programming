@@ -8,10 +8,9 @@
 #include "postman.h"
 #define MAXLEN 10000
 
-extern int sockfd;
 struct Request* createRequest(Opcode op, char* message) {
     struct Request* request = (struct Request*) malloc(sizeof(struct Request));
-    if (!request) printf("Failed to allocate memory when creating Request");
+    if (!request) printf("Error: Failed to allocate memory when creating Request\n\n");
 
     request->opcode = op;
     if (message)
@@ -20,28 +19,30 @@ struct Request* createRequest(Opcode op, char* message) {
     return request;
 }
 
-void sendRequest(int sockfd, struct Request* request, int size, int flags) {
-    char *buf = (char*) malloc(sizeof(char)* MAXLEN );
-    sprintf(buf, "%d %s", request->opcode, request->message);
-    printf("mess: %s\n", buf);
-    if (send(sockfd, buf, strlen(buf), flags) < 0)
-        perror("Error");
-    free(buf);
+void sendRequest(int sockfd, struct Request* request) {
+    char *bufff = (char*) malloc(sizeof(char)* MAXLEN );
+    sprintf(bufff, "%d %s", request->opcode, request->message);
+    
+    // printf("send mess: %s\n", bufff);
+
+    if (send(sockfd, bufff, strlen(bufff), 0) < 0) perror("Error: ");
+    free(bufff);
 }
 
-void receiveRequest(int sockfd, struct Request* request, int size, int flags) {
-    char *buf = (char*) malloc(sizeof(char)*MAXLEN);
-    if (recv(sockfd, buf, MAXLEN, 0) < 0) {
-        free(buf);
+void receiveRequest(int sockfd, struct Request* request) {
+    if (!request) request = (struct Request*) malloc(sizeof(struct Request));
+
+    char *bufff = (char*) malloc(sizeof(char)*MAXLEN);
+    if (recv(sockfd, bufff, MAXLEN, 0) < 0) {
+        free(bufff);
         return;
     }
-    printf("%s.\n", buf);
 
-    request->opcode = atoi(strtok(buf, " "));
+    request->opcode = atoi(strtok(bufff, " "));
     char *a = strtok(NULL, "");
     if (a)
         strcpy(request->message, a);
-    free(buf);
+    free(bufff);
 }
 
 void setResponseMessage(struct Response* response) {
@@ -50,11 +51,29 @@ void setResponseMessage(struct Response* response) {
     int messStatus = response->status;
 
     switch(messStatus) {
+        case OK:
+            strcpy(response->message, "OK");
+            break;
+        case SYNTAX_ERROR:
+            strcpy(response->message, "Syntax error");
+            break;
+        case SERVER_ERROR:
+            strcpy(response->message, "Server error");
+            break;  
+        case LOGIN_SUCCESS:
+            strcpy(response->message, "Login successful");
+            break;
         case LOGIN_FAILED:
             strcpy(response->message, "Login failed");
             break;
-        case LOGIN_SUCCESS:
-            strcpy(response->message, "Login successful");
+        case REGISTER_FAILED:
+            strcpy(response->message, "Register failed");
+            break;
+        case REGISTER_SUCCESS:
+            strcpy(response->message, "Register successful");
+            break;
+        case NO_CONTENT:
+            strcpy(response->message, "No content");
             break;
         default:
             strcpy(response->message, "Exception");
@@ -63,7 +82,7 @@ void setResponseMessage(struct Response* response) {
 
 struct Response* createResponse(MessageStatus status, char* data) {
     struct Response* response = (struct Response*) malloc(sizeof(struct Response));
-    if (!response) printf("Failed to allocate memory when creating Response");
+    if (!response) printf("Error: Failed to allocate memory when creating Response\n\n");
 
     response->status = status;
     setResponseMessage(response);
@@ -73,25 +92,31 @@ struct Response* createResponse(MessageStatus status, char* data) {
 }
 
 void sendResponse(int sockfd, struct Response* response) {
-    char *buf = (char*) malloc(sizeof(char)* MAXLEN );
-    sprintf(buf, "%d %s", response->status, response->data);
-    printf("send res: %s\n", buf);
-    if (send(sockfd, buf, strlen(buf), 0) < 0)
+    char *buff = (char*) malloc(sizeof(char)* MAXLEN );
+    sprintf(buff, "%d %s", response->status, response->data);
+
+    // printf("send res: %s\n", buff);
+    
+    if (send(sockfd, buff, strlen(buff), 0) < 0)
         perror("Error");
-    free(buf);
+    
+    free(buff);
 }
 
-void receiveResponse(int sockfd, struct Response* response, int size, int flags) {
-    char *buf = (char*) malloc(sizeof(char) * MAXLEN);
-    if ( recv(sockfd, buf, MAXLEN, 0) < 0) {
+void receiveResponse(int sockfd, struct Response* response) {
+	if (!response) response = (struct Response*) malloc(sizeof(struct Response));
+
+    char *buff = (char*) malloc(sizeof(char) * MAXLEN);
+    if ( recv(sockfd, buff, MAXLEN, 0) < 0) {
         return;
     }
-    printf("%s.\n", buf);
+    printf("%s.\n", buff);
 
-    response->status = atoi(strtok(buf, " "));
-    strcpy(response->message, "");
+    response->status = atoi(strtok(buff, " "));
+    setResponseMessage(response);
     
     char *a = strtok(NULL, "");
     if (a)
         strcpy(response->data, a);
+    free(buff);
 }
