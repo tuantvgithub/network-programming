@@ -111,7 +111,7 @@ struct Response* login(struct Request* req) {
 
     // TODO add account to active account list
 
-    return createResponse(LOGIN_SUCCESS, NULL);
+    return createResponse(OK, NULL);
 }
 
 struct Response* logout(struct Request* req) {
@@ -133,7 +133,7 @@ struct Response* doRegister(struct Request* req) {
     if (saveAccount(tokens[0], tokens[1]) < 0)
         return createResponse(SERVER_ERROR, NULL);
 
-    return createResponse(REGISTER_SUCCESS, NULL);    
+    return createResponse(OK, NULL);    
 }
 
 struct Response* listRoom(struct Request* req) {
