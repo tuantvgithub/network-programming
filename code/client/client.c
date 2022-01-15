@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
        exit(1);
     }
 
-    runCLI(sockfd);
+    homePageScreen(sockfd);
 
 	return 0;
 }

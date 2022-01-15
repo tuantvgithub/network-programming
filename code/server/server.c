@@ -9,7 +9,7 @@
 
 #include "postman.h"
 #include "storage.h"
-#include "utils.h"
+#include "../util/utils.h"
 #include "server.h"
 
 #define MAXLINE 4096 /*max text line length*/
@@ -66,8 +66,12 @@ int main (int argc, char **argv) {
 
                 struct Request* req = NULL;
                 receiveRequest(connfd, req);
+
+                printf("Req: %d %s\n", req->opcode, req->message);
                 
                 struct Response* res = handleRequest(connfd, req);
+                printf("Res:\n-mess: %s\n-data: %s\n", res->message, res->data);
+
                 sendResponse(connfd, res);
             }
             if (rcvBytes < 0)
@@ -77,8 +81,8 @@ int main (int argc, char **argv) {
     }
 }
 
-struct Response* handleRequest(struct Request *request) {
-    if (!req || !req->message) 
+struct Response* handleRequest(int connfd, struct Request *request) {
+    if (!request || !request->message) 
         return createResponse(SYNTAX_ERROR, NULL);
 
     switch (request->opcode) {
@@ -90,6 +94,8 @@ struct Response* handleRequest(struct Request *request) {
             return doRegister(request);
         case LR:
             return listRoom(request);
+        default:
+            return createResponse(SYNTAX_ERROR, NULL);
     }
 }
 
@@ -148,7 +154,8 @@ struct Response* listRoom(struct Request* req) {
         strcat(data, " ");
         strcat(data, onRoomArr[i].hostName);
         strcat(data, " ");
-        strcat(data, onRoomArr[i].numOfPlayer);
+        char numOfPlayerStr[20]; sprintf(numOfPlayerStr, "%d", onRoomArr[i].numOfPlayer);
+        strcat(data, numOfPlayerStr);
         strcat(data, "|");              
     }
 

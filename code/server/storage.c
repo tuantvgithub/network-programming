@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "storage.h"
 
 int saveAccount(char* username, char* password) {
@@ -36,23 +37,23 @@ struct Account* getAccountByUsername(char* username) {
 }
 
 
-Node createNode(void* value) {
-    Node node = (Node) malloc(sizeof(node));
+struct Node* createNode(void* value) {
+    struct Node* node = (struct Node*) malloc(sizeof(struct Node));
     node->value = value;
     node->next = NULL;
     return node;
 }
 
-List newList() {
-    List l;
-    l.head = NULL;
-    l.count = 0;
+struct List* newList() {
+    struct List* l = (struct List*) malloc(sizeof(struct List));
+    l->head = NULL;
+    l->count = 0;
     return l;
 }
 
-void addEnd(List* l, void* value) {
-    Node temp = l->head;
-    Node node = createNode(value);
+void addEnd(struct List* l, void* value) {
+    struct Node* temp = l->head;
+    struct Node* node = createNode(value);
     if (l->head == NULL) {
         l->head = node;
         l->count++;
@@ -66,11 +67,11 @@ void addEnd(List* l, void* value) {
     l->count++;
 }
 
-List getAllQuestion(char *ques_file) {
+struct List* getAllQuestion(char *quesFile) {
     char line[500] = "";
 
-    FILE *f = fopen(ques_file, "r");
-    List l = newList();
+    FILE *f = fopen(quesFile, "r");
+    struct List* l = newList();
     if (f == NULL)  return l;
 
     struct Question *ques;
@@ -84,8 +85,9 @@ List getAllQuestion(char *ques_file) {
         strcpy(ques->choices[2], strtok(NULL, "|"));
         strcpy(ques->choices[3], strtok(NULL, "|"));
         strcpy(ques->answer, strtok(NULL, "|"));
-        addEnd(&l, ques);
+        addEnd(l, ques);
     }
+
     fclose(f);
     return l;
 }
@@ -112,7 +114,7 @@ int loadAllRooms(struct Room* output) {
         strcpy(tmp.questionsFile, questionsFile);
         strcpy(tmp.hostName, hostName);
 
-        for (int i = 0; i < numOfPlayer) {
+        for (int i = 0; i < numOfPlayer; i++) {
             tmp.players[i] = (char*) malloc(sizeof(char) * 45);
             fscanf(f, "%s", tmp.players[i]);
         }
@@ -128,5 +130,5 @@ int getAllOnRooms(struct Room* roomArr, int size, struct Room* output) {
     if (!roomArr) return -1;
     if (!output) output = (struct Room*) malloc(sizeof(struct Room) * 20);
     
-    
+    return -1;
 }

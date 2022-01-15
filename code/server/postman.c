@@ -20,29 +20,28 @@ struct Request* createRequest(Opcode op, char* message) {
 }
 
 void sendRequest(int sockfd, struct Request* request) {
-    char *bufff = (char*) malloc(sizeof(char)* MAXLEN );
-    sprintf(bufff, "%d %s", request->opcode, request->message);
+    char *buff = (char*) malloc(sizeof(char)* MAXLEN );
+    sprintf(buff, "%d %s", request->opcode, request->message);
     
-    // printf("send mess: %s\n", bufff);
+    // printf("send mess: %s\n", buff);
 
-    if (send(sockfd, bufff, strlen(bufff), 0) < 0) perror("Error: ");
-    free(bufff);
+    if (send(sockfd, buff, strlen(buff), 0) < 0) perror("Error: ");
+    free(buff);
 }
 
 void receiveRequest(int sockfd, struct Request* request) {
     if (!request) request = (struct Request*) malloc(sizeof(struct Request));
 
-    char *bufff = (char*) malloc(sizeof(char)*MAXLEN);
-    if (recv(sockfd, bufff, MAXLEN, 0) < 0) {
-        free(bufff);
+    char *buff = (char*) malloc(sizeof(char)*MAXLEN);
+    if (recv(sockfd, buff, MAXLEN, 0) < 0) {
+        free(buff);
         return;
     }
 
-    request->opcode = atoi(strtok(bufff, " "));
+    request->opcode = atoi(strtok(buff, " "));
     char *a = strtok(NULL, "");
-    if (a)
-        strcpy(request->message, a);
-    free(bufff);
+    if (a) strcpy(request->message, a);
+    free(buff);
 }
 
 void setResponseMessage(struct Response* response) {
@@ -60,17 +59,11 @@ void setResponseMessage(struct Response* response) {
         case SERVER_ERROR:
             strcpy(response->message, "Server error");
             break;  
-        case LOGIN_SUCCESS:
-            strcpy(response->message, "Login successful");
-            break;
         case LOGIN_FAILED:
             strcpy(response->message, "Login failed");
             break;
         case REGISTER_FAILED:
             strcpy(response->message, "Register failed");
-            break;
-        case REGISTER_SUCCESS:
-            strcpy(response->message, "Register successful");
             break;
         case NO_CONTENT:
             strcpy(response->message, "No content");
@@ -80,7 +73,7 @@ void setResponseMessage(struct Response* response) {
     }
 }
 
-struct Response* createResponse(MessageStatus status, char* data) {
+struct Response* createResponse(ResponseStatus status, char* data) {
     struct Response* response = (struct Response*) malloc(sizeof(struct Response));
     if (!response) printf("Error: Failed to allocate memory when creating Response\n\n");
 
@@ -98,16 +91,17 @@ void sendResponse(int sockfd, struct Response* response) {
     // printf("send res: %s\n", buff);
     
     if (send(sockfd, buff, strlen(buff), 0) < 0)
-        perror("Error");
+        perror("Error: ");
     
     free(buff);
 }
 
 void receiveResponse(int sockfd, struct Response* response) {
 	if (!response) response = (struct Response*) malloc(sizeof(struct Response));
-
     char *buff = (char*) malloc(sizeof(char) * MAXLEN);
-    if ( recv(sockfd, buff, MAXLEN, 0) < 0) {
+    if (recv(sockfd, buff, MAXLEN, 0) < 0) {
+        perror("Error: ");
+        free(response);
         return;
     }
     printf("%s.\n", buff);
@@ -116,7 +110,6 @@ void receiveResponse(int sockfd, struct Response* response) {
     setResponseMessage(response);
     
     char *a = strtok(NULL, "");
-    if (a)
-        strcpy(response->data, a);
+    if (a) strcpy(response->data, a);
     free(buff);
 }

@@ -4,7 +4,7 @@
 
 #include "postman.h"
 
-struct Response* handleRequest(struct Request *req);
+struct Response* handleRequest(int connfd, struct Request *req);
 
 struct Response* login(struct Request* req);
 struct Response* logout(struct Request* req);

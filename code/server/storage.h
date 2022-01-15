@@ -13,13 +13,14 @@ struct Account {
 int saveAccount(char* username, char* password);
 struct Account* getAccountByUsername(char* username);
 
-
 struct Question {
 	int id;
 	char ques[200];
 	char choices[4][100];
 	char answer[100];
 };
+
+struct List* getAllQuestion(char* quesFile);
 
 
 struct Room {
@@ -34,21 +35,19 @@ struct Room {
 int loadAllRooms(struct Room* roomArr);
 int getAllOnRooms(struct Room* roomArr, int size, struct Room* output);
 
-struct LLNode {
-    void* value;
-    struct LLNode* next;
+
+struct Node {
+	void* value;
+	struct Node* next;
 };
 
-struct LList {
-    struct LLNode* head;
-    int count;
+struct List {
+	struct Node* head;
+	int count;
 };
 
-
-struct LList* initLList();
-struct Node* createAccountNode(struct Account);
-void addEnd(struct LList* ll, void* value);
-
-List getAllQuestion(char *ques_file);
+struct Node* createNode(void* value);
+struct List* newList();
+void addEnd(struct List* l, void* value);
 
 #endif // __STORAGE_H__
