@@ -59,14 +59,16 @@ int main (int argc, char **argv) {
         if ((childpid = fork()) == 0) {
             close(listenfd);
 
-            while ((rcvBytes = recv(connfd, buff, MAXLINE, 0)) > 0){
-                buff[rcvBytes] = '\0';
-                printf("Receive from client[%s:%d]: %s\n",inet_ntoa(clientAddr.sin_addr), 
-                                    ntohs(clientAddr.sin_port), buff);
+            // while ((rcvBytes = recv(connfd, buff, MAXLINE, 0)) > 0){
+            while (1) {
+                printf("Receive from client[%s:%d]: ",inet_ntoa(clientAddr.sin_addr), 
+                                    ntohs(clientAddr.sin_port));
 
-                struct Request* req = NULL;
-                receiveRequest(connfd, req);
+                // struct Request* req = NULL;
+                struct Request* req = (struct Request*) malloc(sizeof(struct Request));
 
+                if ((rcvBytes = receiveRequest(connfd, req)) <= 0)  break;
+                // if (req == NULL)   printf("wtf\n");
                 printf("Req: %d %s\n", req->opcode, req->message);
                 
                 struct Response* res = handleRequest(connfd, req);
@@ -82,7 +84,9 @@ int main (int argc, char **argv) {
 }
 
 struct Response* handleRequest(int connfd, struct Request *request) {
+    printf("-----handle begin---\n");
     if (!request || !request->message) 
+    // if (!request) 
         return createResponse(SYNTAX_ERROR, NULL);
 
     switch (request->opcode) {
@@ -92,6 +96,8 @@ struct Response* handleRequest(int connfd, struct Request *request) {
             return logout(request);
         case REGISTER:
             return doRegister(request);
+        case CR:
+            return createRoom(request);
         case LR:
             return listRoom(request);
         default:
@@ -102,16 +108,17 @@ struct Response* handleRequest(int connfd, struct Request *request) {
 struct Response* login(struct Request* req) {    
     char* tokens[5];
     int n = split(req->message, " ", tokens);
-    if (n != 2)
-        return createResponse(SYNTAX_ERROR, NULL);
-    
+    printf("----Login begin---\n");
+    // if (n != 2)
+    //     return createResponse(SYNTAX_ERROR, NULL);
     struct Account* account = getAccountByUsername(tokens[0]);
     if (!account || strcmp(account->password, tokens[1]))
         return createResponse(LOGIN_FAILED, NULL);
 
     // TODO add account to active account list
-
-    return createResponse(OK, NULL);
+    // return createResponse(OK, NULL);
+    return createResponse(OK, "STUDENT");
+    
 }
 
 struct Response* logout(struct Request* req) {
@@ -136,17 +143,43 @@ struct Response* doRegister(struct Request* req) {
     return createResponse(OK, NULL);    
 }
 
+struct Response* createRoom(struct Request* req) {
+    if (!req) return NULL;
+      
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+
+    struct Room* room = getRoomByRoomName(tokens[1]);
+    if (!room) {
+        struct Room room;
+        strcpy(room.roomName, tokens[1]);
+        strcpy(room.questionsFile, tokens[2]);
+        strcpy(room.hostName, tokens[0]);
+        room.status = 0;
+        room.numOfPlayer = 0;
+
+        saveRoom(room);
+        return createResponse(OK, NULL);
+    }
+
+    return createResponse(CREATE_ROOM_FAILED, NULL);
+}
+
+
+
 struct Response* listRoom(struct Request* req) {
-    struct Room* roomArr = NULL;
-    int roomArrSize = loadAllRooms(roomArr);   
+    // struct Room* roomArr = NULL;
+    // struct Room* onRoomArr;
+    struct Room* onRoomArr = (struct Room*) malloc(sizeof(struct Room)*20);
+    int onRoomArrSize = loadAllRooms(onRoomArr);   
 
-    if (roomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
-    if (roomArrSize == 0) return createResponse(NO_CONTENT, NULL);
-
-    struct Room* onRoomArr = NULL;
-    int onRoomArrSize = getAllOnRooms(roomArr, roomArrSize, onRoomArr);
     if (onRoomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
     if (onRoomArrSize == 0) return createResponse(NO_CONTENT, NULL);
+
+    // struct Room* onRoomArr = NULL;
+    // int onRoomArrSize = getAllOnRooms(roomArr, roomArrSize, onRoomArr);
+    // if (onRoomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
+    // if (onRoomArrSize == 0) return createResponse(NO_CONTENT, NULL);
 
     char data[1000] = "";
     for (int i = 0; i < onRoomArrSize; i++) {

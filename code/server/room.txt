@@ -1,1 +1,3 @@
-host roomName question.txt
+room1 0 question.txt admin 0
+room2 0 question.txt admin 3 tuantv tupv abs
+room3 0 question.txtn admin 0

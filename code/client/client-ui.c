@@ -10,34 +10,53 @@
 char username[100];
 char role[100];
 
+// void homePageScreen(int sockfd) {
+//     int event = 0;
+
+//     while (event != 3) {
+//         printf("__________ Thi trac nghiem __________\n\n");
+//         printf("-> 1. Login\n");
+//         printf("-> 2. Register\n");
+//         printf("-> 3. Exit\n\n");
+
+//         printf("--> Your choice: "); 
+//         scanf("%d", &event);
+//         while(getchar() != '\n');
+//         printf("\n");
+
+//         switch (event) {
+//             case 1:
+//                 loginScreen(sockfd);
+//                 break;
+//             case 2:
+//                 registerScreen(sockfd);
+//                 break;
+//             case 3:
+//                 exitScreen(sockfd);
+//                 break;
+//             default:
+//                 printf("\n-> Error: your choice is not valid.\n\n");
+//         }
+//     }
+// }
+
 void homePageScreen(int sockfd) {
-    int event = 0;
+    struct Request* req;
+    struct Response* res;
+    // struct Request* req = createRequest(LOGIN, "tuantv tuantv");
+    // sendRequest(sockfd, req);
+    // struct Response* res = (struct Response*) malloc(sizeof(struct Response));
+    // receiveResponse(sockfd, res);
 
-    while (event != 3) {
-        printf("__________ Thi trac nghiem __________\n\n");
-        printf("-> 1. Login\n");
-        printf("-> 2. Register\n");
-        printf("-> 3. Exit\n\n");
+    req = createRequest(LR, NULL);
+    sendRequest(sockfd, req);
+    res = (struct Response*) malloc(sizeof(struct Response));
+    receiveResponse(sockfd, res);
 
-        printf("--> Your choice: "); 
-        scanf("%d", &event);
-        while(getchar() != '\n');
-        printf("\n");
-
-        switch (event) {
-            case 1:
-                loginScreen(sockfd);
-                break;
-            case 2:
-                registerScreen(sockfd);
-                break;
-            case 3:
-                exitScreen(sockfd);
-                break;
-            default:
-                printf("\n-> Error: your choice is not valid.\n\n");
-        }
-    }
+    req = createRequest(CR, "admin room3 question.abs");
+    sendRequest(sockfd, req);
+    res = (struct Response*) malloc(sizeof(struct Response));
+    receiveResponse(sockfd, res);
 }
 
 void loginScreen(int sockfd) {
@@ -78,7 +97,8 @@ void loginScreen(int sockfd) {
     struct Request* req = createRequest(LOGIN, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    // struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
     if (!res) {
@@ -172,7 +192,8 @@ void createRoomScreen(int sockfd) {
     struct Request* req = createRequest(CR, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    // struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
     if (!res) {
@@ -228,7 +249,8 @@ void showRoomInfoScreen(int sockfd, char* roomName) {
     struct Request* req = createRequest(SR, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    // struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
     if (!res) {
