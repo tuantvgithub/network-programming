@@ -8,7 +8,7 @@ typedef enum {
 
 	JOIN,
 	OUT,
-	LR, SR, CR, DR,
+	LR, SR, CR, DR, JR,
 
 	START,
 	GET_EXAM,
@@ -23,7 +23,7 @@ struct Request {
 struct Request* createRequest(Opcode opcode, char* message);
 
 void sendRequest(int sockfd, struct Request* request);
-void receiveRequest(int sockfd, struct Request* request);
+int receiveRequest(int sockfd, struct Request* request);
 
 
 typedef enum {
@@ -36,7 +36,9 @@ typedef enum {
 	
 	REGISTER_FAILED = 41,
 
-	NO_CONTENT = 51
+	NO_CONTENT = 51, 
+
+	CREATE_ROOM_FAILED = 71
 } ResponseStatus;
 
 struct Response {

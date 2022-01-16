@@ -21,7 +21,7 @@ struct Account* getAccountByUsername(char* username) {
     FILE* accountStorage = fopen(ACCOUNT_STORAGE_PATH, "r");
     struct Account* account = (struct Account*) malloc(sizeof(struct Account));
     if (account == NULL) return NULL;
-
+    if (accountStorage == NULL) return NULL;
     char _username[45];
     char _password[45];
     while (fscanf(accountStorage, "%s %s", _username, _password) != EOF) {
@@ -31,7 +31,6 @@ struct Account* getAccountByUsername(char* username) {
             return account;
         }
     }
-
     fclose(accountStorage);
     return NULL;
 }
@@ -92,6 +91,47 @@ struct List* getAllQuestion(char *quesFile) {
     return l;
 }
 
+
+int saveRoom(struct Room room) {
+    FILE* roomFile = fopen(ROOM_STORAGE_PATH, "a");
+
+    if (roomFile == NULL) return -1;
+
+    fprintf(roomFile, "\n%s %d %s %s %d", room.roomName, room.status, room.questionsFile,
+                                            room.hostName, room.numOfPlayer);
+    for (int i = 0; i<room.numOfPlayer; i++) {
+        fprintf(roomFile, " %s", room.players[i]);
+    }
+
+    fclose(roomFile);
+    return 1;
+}
+
+struct Room* getRoomByRoomName(char* roomName) {
+    FILE *f = fopen(ROOM_STORAGE_PATH, "r");
+
+    while (1) {
+        struct Room* room = (struct Room*) malloc(sizeof(struct Room));
+        if (fscanf(f, "%s %d %s %s %d", room->roomName,
+                                        &room->status,
+                                        room->questionsFile,
+                                        room->hostName,
+                                        &room->numOfPlayer) < 5) {
+            break;
+        }
+        for (int i = 0; i<room->numOfPlayer; i++) {
+            room->players[i] = (char*) malloc(sizeof(char)*45);
+            fscanf(f, "%s", room->players[i]);
+        }
+
+        if (!strcmp(roomName, room->roomName)) {
+            return room;
+        }
+    }
+    fclose(f);
+    return NULL;
+}
+
 int loadAllRooms(struct Room* output) {
     if (!output) output = (struct Room*) malloc(sizeof(struct Room) * 20);
     
@@ -132,3 +172,18 @@ int getAllOnRooms(struct Room* roomArr, int size, struct Room* output) {
     
     return -1;
 }
+
+// int main() {
+//     struct Room* room = getRoomByRoomName("room2");
+//     if (!room) {
+//         printf("noooo\n");
+//     } else {
+//         printf("room: %s.\n", room->roomName);
+//         printf("{\nname: %s,\nstatus: %d,\nquesFile: %s,\nhostName: %s,\nnum_players: %d\n}\n",
+//             room->roomName, room->status, room->questionsFile, room->hostName, room->numOfPlayer);
+//         for (int i = 0; i<room->numOfPlayer; i++) {
+//             printf("player %d: %s\n", i+1, room->players[i]);
+//         }
+//     }
+
+// }

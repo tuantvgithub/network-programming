@@ -1,8 +1,9 @@
 #ifndef __STORAGE_H__
 #define __STORAGE_H__
 
-#define ACCOUNT_STORAGE_PATH "account.txt"
-#define ROOM_STORAGE_PATH "room.txt"
+// #define ACCOUNT_STORAGE_PATH "account.txt"
+#define ACCOUNT_STORAGE_PATH "./server/account.txt"
+#define ROOM_STORAGE_PATH "./server/room.txt"
 
 struct Account {
 	char username[45];
@@ -31,7 +32,8 @@ struct Room {
 	int numOfPlayer;
 	char* players[10];
 };
-
+int saveRoom(struct Room room);
+struct Room* getRoomByRoomName(char* roomName);
 int loadAllRooms(struct Room* roomArr);
 int getAllOnRooms(struct Room* roomArr, int size, struct Room* output);
 
