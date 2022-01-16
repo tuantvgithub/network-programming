@@ -15,6 +15,8 @@
 #define MAXLINE 4096 /*max text line length*/
 #define LISTENQ 5 /*maximum number of client connections*/
 
+struct List* activeAccount = NULL;
+
 int main (int argc, char **argv) {
     if (argc != 2) {
         perror("Usage: ./server portNumber"); 
@@ -61,11 +63,13 @@ int main (int argc, char **argv) {
             while (1) {
                 struct Request* req = (struct Request*) malloc(sizeof(struct Request));
                 if ((rcvBytes = receiveRequest(connfd, req)) <= 0)  break;
-                printf("Receive from client[%s:%d]: %d %s\n",inet_ntoa(clientAddr.sin_addr), 
-                                    ntohs(clientAddr.sin_port), req->opcode, req->message);
                 
+                printf("Client[%s:%d]:\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+                printf("Request:\n\t-opcode: %d\n\t-message: %s\n", req->opcode, req->message);
+
                 struct Response* res = handleRequest(connfd, req);
-                // printf("Res:\n-mess: %s\n-data: %s\n", res->message, res->data);
+                printf("Response:\n\t-message: %s\n\t-data: %s\n", res->message, 
+                            (strlen(res->data) == 0 ? "NULL" : res->data));
 
                 sendResponse(connfd, res);
             }
@@ -106,7 +110,10 @@ struct Response* login(struct Request* req) {
     if (!account || strcmp(account->password, tokens[1]))
         return createResponse(LOGIN_FAILED, NULL);
 
-    // TODO add account to active account list
+    if (!activeAccount) activeAccount = newList();
+    struct Node* accountNode = createNode(account);
+    addToList(activeAccount, accountNode);
+
     return createResponse(OK, "STUDENT");
 }
 

@@ -6,7 +6,11 @@
 #include <netinet/in.h>
 
 #include "postman.h"
+#include "../util/utils.h"
+
+
 #define MAXLEN 10000
+
 
 struct Request* createRequest(Opcode op, char* message) {
     struct Request* request = (struct Request*) malloc(sizeof(struct Request));
@@ -25,13 +29,16 @@ void sendRequest(int sockfd, struct Request* request) {
     
     // printf("send mess: %s\n", buff);
 
-    if (send(sockfd, buff, strlen(buff), 0) < 0) perror("Error: ");
+    if (send(sockfd, buff, strlen(buff), 0) < 0)
+        printf("\n-> Error: can't send request.\n\n");
+
     free(buff);
 }
 
 int receiveRequest(int sockfd, struct Request* request) {
     char *buff = (char*) malloc(sizeof(char)*MAXLEN);
     if (recv(sockfd, buff, MAXLEN, 0) < 0) {
+        printf("\n-> Error: can't receive request.\n\n");
         free(buff);
         return -1;
     }
@@ -50,9 +57,9 @@ int receiveRequest(int sockfd, struct Request* request) {
 void setResponseMessage(struct Response* response) {
     if (!response) return;
     
-    int messStatus = response->status;
+    int status = response->status;
 
-    switch(messStatus) {
+    switch(status) {
         case OK:
             strcpy(response->message, "OK");
             break;
@@ -85,36 +92,40 @@ struct Response* createResponse(ResponseStatus status, char* data) {
     response->status = status;
     setResponseMessage(response);
     if (data) strcpy(response->data, data);
+    else strcpy(response->data, "");
+    
     return response;
 }
 
 void sendResponse(int sockfd, struct Response* response) {
     char *buff = (char*) malloc(sizeof(char)* MAXLEN );
-    sprintf(buff, "%d %s", response->status, response->data);
+    
+    if (!response->data || strlen(response->data) == 0)
+        sprintf(buff, "%d", response->status);
+    else
+        sprintf(buff, "%d|%s", response->status, response->data);
 
     // printf("send res: %s\n", buff);
     
     if (send(sockfd, buff, strlen(buff), 0) < 0)
-        perror("Error: ");
+        printf("\n-> Error: can't send response.\n\n");
     
     free(buff);
 }
 
 void receiveResponse(int sockfd, struct Response* response) {
-	if (!response) response = (struct Response*) malloc(sizeof(struct Response));
     char *buff = (char*) malloc(sizeof(char) * MAXLEN);
+
     if (recv(sockfd, buff, MAXLEN, 0) < 0) {
-        perror("Error: ");
+        printf("\n-> Error: can't receive response.\n\n");
         free(response);
         return;
     }
 
-    // printf("%s.\n", buff);
-
-    response->status = atoi(strtok(buff, " "));
-    setResponseMessage(response);
+    char* tokens[5];
+    int n = split(buff, "|", tokens);
     
-    char *a = strtok(NULL, "");
-    if (a) strcpy(response->data, a);
-    free(buff);
+    response->status = atoi(tokens[0]);
+    setResponseMessage(response);
+    if (n > 1) strcpy(response->data, tokens[1]);
 }

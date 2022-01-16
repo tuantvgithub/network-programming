@@ -38,18 +38,4 @@ int loadAllRooms(struct Room* roomArr);
 int getAllOnRooms(struct Room* roomArr, int size, struct Room* output);
 
 
-struct Node {
-	void* value;
-	struct Node* next;
-};
-
-struct List {
-	struct Node* head;
-	int count;
-};
-
-struct Node* createNode(void* value);
-struct List* newList();
-void addEnd(struct List* l, void* value);
-
 #endif // __STORAGE_H__

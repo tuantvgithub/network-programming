@@ -1,2 +1,3 @@
 tuantv tuantv STUDENT
 admin admin TEACHER
+shelby shelby TEACHER

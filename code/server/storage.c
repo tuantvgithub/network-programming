@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "storage.h"
+#include "../util/utils.h"
 
 int saveAccount(char* username, char* password, char* role) {
     if (!username || !password) return -1;
@@ -44,36 +45,6 @@ struct Account* getAccountByUsername(char* username) {
 }
 
 
-struct Node* createNode(void* value) {
-    struct Node* node = (struct Node*) malloc(sizeof(struct Node));
-    node->value = value;
-    node->next = NULL;
-    return node;
-}
-
-struct List* newList() {
-    struct List* l = (struct List*) malloc(sizeof(struct List));
-    l->head = NULL;
-    l->count = 0;
-    return l;
-}
-
-void addEnd(struct List* l, void* value) {
-    struct Node* temp = l->head;
-    struct Node* node = createNode(value);
-    if (l->head == NULL) {
-        l->head = node;
-        l->count++;
-        return;
-    }
-    
-    while (temp->next != NULL) {
-        temp = temp->next;
-    }
-    temp->next = node;
-    l->count++;
-}
-
 struct List* getAllQuestion(char *quesFile) {
     char line[500] = "";
 
@@ -92,7 +63,7 @@ struct List* getAllQuestion(char *quesFile) {
         strcpy(ques->choices[2], strtok(NULL, "|"));
         strcpy(ques->choices[3], strtok(NULL, "|"));
         strcpy(ques->answer, strtok(NULL, "|"));
-        addEnd(l, ques);
+        addToList(l, ques);
     }
 
     fclose(f);

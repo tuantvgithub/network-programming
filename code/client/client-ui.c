@@ -63,14 +63,9 @@ void loginScreen(int sockfd) {
     struct Request* req = createRequest(LOGIN, message);
     sendRequest(sockfd, req);
 
-    // struct Response* res = NULL;
     struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -158,14 +153,9 @@ void createRoomScreen(int sockfd) {
     struct Request* req = createRequest(CR, message);
     sendRequest(sockfd, req);
 
-    // struct Response* res = NULL;
     struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> failed: %s\n\n", res->message);
         return;
@@ -215,14 +205,9 @@ void showRoomInfoScreen(int sockfd, char* roomName) {
     struct Request* req = createRequest(SR, message);
     sendRequest(sockfd, req);
 
-    // struct Response* res = NULL;
     struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -244,13 +229,9 @@ void startExamScreen(int sockfd, char* roomName) {
     struct Request* req = createRequest(START, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -264,13 +245,9 @@ void dropRoomScreen(int sockfd, char* roomName) {
     struct Request* req = createRequest(DR, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -315,13 +292,9 @@ void listRoomScreen(int sockfd) {
     struct Request* req = createRequest(LR, NULL);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -361,13 +334,9 @@ void joinRoomScreen(int sockfd) {
     struct Request* req = createRequest(LR, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -413,13 +382,9 @@ void examScreen(int sockfd, char* roomName) {
     struct Request* req = createRequest(GET_EXAM, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -439,13 +404,9 @@ void outRoom(int sockfd, char* roomName) {
     struct Request* req = createRequest(OUT, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -463,13 +424,9 @@ void logoutScreen(int sockfd) {
     struct Request* req = createRequest(LOGOUT, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
@@ -509,18 +466,16 @@ void registerScreen(int sockfd) {
             printf("\n-> Error: password is not valid.\n\n");
     }
 
-    char _role[45];
-    int roleIsValid = 0;
+    int _roleId = 0;
 
-    while (!roleIsValid) {
-        int selected = 0;
+    while (1) {
         printf("--> role:   1. Student    2. Teacher\n");
         printf("--> Your choice: ");
-        scanf("%d", &selected);
+        scanf("%d", &_roleId);
         while(getchar() != '\n');
 
-        if (selected == 1 || selected == 2)
-            roleIsValid = 1;
+        if (_roleId == 1 || _roleId == 2)
+            break;
         else
             printf("\n-> Error: role is not valid.\n\n");
     }
@@ -530,12 +485,12 @@ void registerScreen(int sockfd) {
     strcat(message, " ");
     strcat(message, _password);
     strcat(message, " ");
-    strcat(message, _role);
+    strcat(message, (_roleId == 1 ? "STUDENT" : "TEACHER"));
 
     struct Request* req = createRequest(REGISTER, message);
     sendRequest(sockfd, req);
 
-    struct Response* res = NULL;
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));;
     receiveResponse(sockfd, res);
 
     if (!res) {
