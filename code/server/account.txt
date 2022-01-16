@@ -1,2 +1,2 @@
-tuantv tuantv
-admin admin
+tuantv tuantv STUDENT
+admin admin TEACHER

@@ -4,30 +4,38 @@
 
 #include "storage.h"
 
-int saveAccount(char* username, char* password) {
-    if (username == NULL || password == NULL) return -1;
-    FILE* accountStorage = fopen(ACCOUNT_STORAGE_PATH, "a");
+int saveAccount(char* username, char* password, char* role) {
+    if (!username || !password) return -1;
+    if (!role) {
+        role = (char*) malloc(sizeof(char) * 45);
+        strcpy(role, "STUDENT");
+    }
 
+    FILE* accountStorage = fopen(ACCOUNT_STORAGE_PATH, "a");
     if (accountStorage == NULL) return -1;
 
-    fprintf(accountStorage, "\n%s %s", username, password);
+    fprintf(accountStorage, "\n%s %s %s", username, password, role);
 
     fclose(accountStorage);
     return 1;
 }
 
 struct Account* getAccountByUsername(char* username) {
-    if (username == NULL) return NULL;
+    if (!username) return NULL;
     FILE* accountStorage = fopen(ACCOUNT_STORAGE_PATH, "r");
     struct Account* account = (struct Account*) malloc(sizeof(struct Account));
-    if (account == NULL) return NULL;
-    if (accountStorage == NULL) return NULL;
+    if (!account) return NULL;
+    if (!accountStorage) return NULL;
+
     char _username[45];
     char _password[45];
-    while (fscanf(accountStorage, "%s %s", _username, _password) != EOF) {
+    char _role[45];
+
+    while (fscanf(accountStorage, "%s %s %s", _username, _password, _role) != EOF) {
         if (strcmp(_username, username) == 0) {
             strcpy(account->username, _username);
             strcpy(account->password, _password);
+            strcpy(account->role, _role);
             return account;
         }
     }

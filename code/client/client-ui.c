@@ -10,53 +10,34 @@
 char username[100];
 char role[100];
 
-// void homePageScreen(int sockfd) {
-//     int event = 0;
-
-//     while (event != 3) {
-//         printf("__________ Thi trac nghiem __________\n\n");
-//         printf("-> 1. Login\n");
-//         printf("-> 2. Register\n");
-//         printf("-> 3. Exit\n\n");
-
-//         printf("--> Your choice: "); 
-//         scanf("%d", &event);
-//         while(getchar() != '\n');
-//         printf("\n");
-
-//         switch (event) {
-//             case 1:
-//                 loginScreen(sockfd);
-//                 break;
-//             case 2:
-//                 registerScreen(sockfd);
-//                 break;
-//             case 3:
-//                 exitScreen(sockfd);
-//                 break;
-//             default:
-//                 printf("\n-> Error: your choice is not valid.\n\n");
-//         }
-//     }
-// }
-
 void homePageScreen(int sockfd) {
-    struct Request* req;
-    struct Response* res;
-    // struct Request* req = createRequest(LOGIN, "tuantv tuantv");
-    // sendRequest(sockfd, req);
-    // struct Response* res = (struct Response*) malloc(sizeof(struct Response));
-    // receiveResponse(sockfd, res);
+    int event = 0;
 
-    req = createRequest(LR, NULL);
-    sendRequest(sockfd, req);
-    res = (struct Response*) malloc(sizeof(struct Response));
-    receiveResponse(sockfd, res);
+    while (event != 3) {
+        printf("__________ Home page __________\n\n");
+        printf("-> 1. Login\n");
+        printf("-> 2. Register\n");
+        printf("-> 3. Exit\n\n");
 
-    req = createRequest(CR, "admin room3 question.abs");
-    sendRequest(sockfd, req);
-    res = (struct Response*) malloc(sizeof(struct Response));
-    receiveResponse(sockfd, res);
+        printf("--> Your choice: "); 
+        scanf("%d", &event);
+        while(getchar() != '\n');
+        printf("\n");
+
+        switch (event) {
+            case 1:
+                loginScreen(sockfd);
+                break;
+            case 2:
+                registerScreen(sockfd);
+                break;
+            case 3:
+                exitScreen(sockfd);
+                break;
+            default:
+                printf("\n-> Error: your choice is not valid.\n\n");
+        }
+    }
 }
 
 void loginScreen(int sockfd) {
@@ -64,30 +45,15 @@ void loginScreen(int sockfd) {
     printf("__________ Login Screen __________\n\n");
 
     char _username[100];
-    int usernameIsValid = 0;
-
-    while (!usernameIsValid) {
-        printf("--> username: ");
-        scanf("%[^\n]s", _username);
-        while(getchar() != '\n');
-        if (validateUsername(_username) > 0)
-            usernameIsValid = 1;
-        else
-            printf("\n-> Error: username is not valid.\n\n");
-    }
-
     char _password[100];
-    int passwordIsValid = 0;
 
-    while (!passwordIsValid) {
-        printf("--> password: ");
-        scanf("%[^\n]s", _password);
-        while(getchar() != '\n');
-        if (validatePassword(_password) > 0)
-            passwordIsValid = 1;
-        else
-            printf("\n-> Error: password is not valid.\n\n");
-    }
+    printf("--> username: ");
+    scanf("%[^\n]s", _username);
+    while(getchar() != '\n');
+
+    printf("--> password: ");
+    scanf("%[^\n]s", _password);
+    while(getchar() != '\n');
 
     char message[100];
     strcpy(message, _username);
@@ -543,10 +509,28 @@ void registerScreen(int sockfd) {
             printf("\n-> Error: password is not valid.\n\n");
     }
 
+    char _role[45];
+    int roleIsValid = 0;
+
+    while (!roleIsValid) {
+        int selected = 0;
+        printf("--> role:   1. Student    2. Teacher\n");
+        printf("--> Your choice: ");
+        scanf("%d", &selected);
+        while(getchar() != '\n');
+
+        if (selected == 1 || selected == 2)
+            roleIsValid = 1;
+        else
+            printf("\n-> Error: role is not valid.\n\n");
+    }
+
     char message[100];
     strcpy(message, _username);
     strcat(message, " ");
     strcat(message, _password);
+    strcat(message, " ");
+    strcat(message, _role);
 
     struct Request* req = createRequest(REGISTER, message);
     sendRequest(sockfd, req);

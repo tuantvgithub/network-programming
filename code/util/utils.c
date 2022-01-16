@@ -15,5 +15,5 @@ int split(char* str, char* delim, char** output) {
         token = strtok(NULL, delim);
     }
 
-    return 1;
+    return count;
 }

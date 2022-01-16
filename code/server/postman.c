@@ -30,15 +30,13 @@ void sendRequest(int sockfd, struct Request* request) {
 }
 
 int receiveRequest(int sockfd, struct Request* request) {
-    // if (!request) request = (struct Request*) malloc(sizeof(struct Request));
-
     char *buff = (char*) malloc(sizeof(char)*MAXLEN);
     if (recv(sockfd, buff, MAXLEN, 0) < 0) {
         free(buff);
         return -1;
     }
 
-    printf("%s....\n", buff);
+    // printf("%s....\n", buff);
 
     request->opcode = atoi(strtok(buff, " "));
     char *a = strtok(NULL, "");
@@ -87,7 +85,6 @@ struct Response* createResponse(ResponseStatus status, char* data) {
     response->status = status;
     setResponseMessage(response);
     if (data) strcpy(response->data, data);
-    printf("end\n");
     return response;
 }
 
@@ -95,7 +92,7 @@ void sendResponse(int sockfd, struct Response* response) {
     char *buff = (char*) malloc(sizeof(char)* MAXLEN );
     sprintf(buff, "%d %s", response->status, response->data);
 
-    printf("send res: %s\n", buff);
+    // printf("send res: %s\n", buff);
     
     if (send(sockfd, buff, strlen(buff), 0) < 0)
         perror("Error: ");
@@ -111,7 +108,8 @@ void receiveResponse(int sockfd, struct Response* response) {
         free(response);
         return;
     }
-    printf("%s.\n", buff);
+
+    // printf("%s.\n", buff);
 
     response->status = atoi(strtok(buff, " "));
     setResponseMessage(response);

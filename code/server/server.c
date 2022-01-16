@@ -44,12 +44,11 @@ int main (int argc, char **argv) {
     //listen to the socket by creating a connection queue, then wait for clients
     listen (listenfd, LISTENQ);
 
-    printf("Server running...waiting for connections.\n");
+    printf("Server running... in port %s. Waiting for connections.\n", argv[1]);
 
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
     int connfd, rcvBytes = sizeof(clientAddr);
-    char buff[MAXLINE + 1];
     pid_t childpid;
 
     while (1) {
@@ -59,20 +58,14 @@ int main (int argc, char **argv) {
         if ((childpid = fork()) == 0) {
             close(listenfd);
 
-            // while ((rcvBytes = recv(connfd, buff, MAXLINE, 0)) > 0){
             while (1) {
-                printf("Receive from client[%s:%d]: ",inet_ntoa(clientAddr.sin_addr), 
-                                    ntohs(clientAddr.sin_port));
-
-                // struct Request* req = NULL;
                 struct Request* req = (struct Request*) malloc(sizeof(struct Request));
-
                 if ((rcvBytes = receiveRequest(connfd, req)) <= 0)  break;
-                // if (req == NULL)   printf("wtf\n");
-                printf("Req: %d %s\n", req->opcode, req->message);
+                printf("Receive from client[%s:%d]: %d %s\n",inet_ntoa(clientAddr.sin_addr), 
+                                    ntohs(clientAddr.sin_port), req->opcode, req->message);
                 
                 struct Response* res = handleRequest(connfd, req);
-                printf("Res:\n-mess: %s\n-data: %s\n", res->message, res->data);
+                // printf("Res:\n-mess: %s\n-data: %s\n", res->message, res->data);
 
                 sendResponse(connfd, res);
             }
@@ -84,9 +77,7 @@ int main (int argc, char **argv) {
 }
 
 struct Response* handleRequest(int connfd, struct Request *request) {
-    printf("-----handle begin---\n");
     if (!request || !request->message) 
-    // if (!request) 
         return createResponse(SYNTAX_ERROR, NULL);
 
     switch (request->opcode) {
@@ -108,17 +99,15 @@ struct Response* handleRequest(int connfd, struct Request *request) {
 struct Response* login(struct Request* req) {    
     char* tokens[5];
     int n = split(req->message, " ", tokens);
-    printf("----Login begin---\n");
-    // if (n != 2)
-    //     return createResponse(SYNTAX_ERROR, NULL);
+    if (n != 2)
+        return createResponse(SYNTAX_ERROR, NULL);
+
     struct Account* account = getAccountByUsername(tokens[0]);
     if (!account || strcmp(account->password, tokens[1]))
         return createResponse(LOGIN_FAILED, NULL);
 
     // TODO add account to active account list
-    // return createResponse(OK, NULL);
     return createResponse(OK, "STUDENT");
-    
 }
 
 struct Response* logout(struct Request* req) {
@@ -130,14 +119,14 @@ struct Response* logout(struct Request* req) {
 struct Response* doRegister(struct Request* req) {
     char* tokens[5];
     int n = split(req->message, " ", tokens);
-    if (n != 2)
+    if (n != 3)
         return createResponse(SYNTAX_ERROR, NULL);
     
     struct Account* account = getAccountByUsername(tokens[0]);
     if (account)
         return createResponse(REGISTER_FAILED, NULL);
     
-    if (saveAccount(tokens[0], tokens[1]) < 0)
+    if (saveAccount(tokens[0], tokens[1], tokens[2]) < 0)
         return createResponse(SERVER_ERROR, NULL);
 
     return createResponse(OK, NULL);    
@@ -147,7 +136,7 @@ struct Response* createRoom(struct Request* req) {
     if (!req) return NULL;
       
     char* tokens[5];
-    int n = split(req->message, " ", tokens);
+    split(req->message, " ", tokens);
 
     struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room) {

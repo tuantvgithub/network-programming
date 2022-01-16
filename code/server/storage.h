@@ -1,17 +1,17 @@
 #ifndef __STORAGE_H__
 #define __STORAGE_H__
 
-// #define ACCOUNT_STORAGE_PATH "account.txt"
 #define ACCOUNT_STORAGE_PATH "./server/account.txt"
 #define ROOM_STORAGE_PATH "./server/room.txt"
+
 
 struct Account {
 	char username[45];
 	char password[45];
-	int connfd;
+	char role[45];
 };
 
-int saveAccount(char* username, char* password);
+int saveAccount(char* username, char* password, char* role);
 struct Account* getAccountByUsername(char* username);
 
 struct Question {
