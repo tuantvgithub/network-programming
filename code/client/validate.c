@@ -27,10 +27,26 @@ int validatePassword(char* password) {
 }
 
 int validateRoomName(char* roomName) {
+	if (!roomName) return -1;
+	int len = strlen(roomName);
+	if (len == 0) return -1;
+
+	for (int i = 0; i < len; i++) 
+		if (roomName[i] == ' ')
+			return -1;
+
 	return 1;
 }
 
 int validateQuestionFileName(char* questionFileName) {
+	if (!questionFileName) return -1;
+	int len = strlen(questionFileName);
+	if (len == 0) return -1;
+
+	for (int i = 0; i < len; i++) 
+		if (questionFileName[i] == ' ')
+			return -1;
+
 	return 1;
 }
 
