@@ -114,7 +114,7 @@ struct Response* login(struct Request* req) {
     struct Node* accountNode = createNode(account);
     addToList(activeAccount, accountNode);
 
-    return createResponse(OK, "STUDENT");
+    return createResponse(OK, account->role);
 }
 
 struct Response* logout(struct Request* req) {
