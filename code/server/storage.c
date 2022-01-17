@@ -101,33 +101,6 @@ int deleteActiveAccount(char* username) {
     return 1;
 }
 
-
-struct List* getAllQuestion(char *quesFile) {
-    char line[500] = "";
-
-    FILE *f = fopen(quesFile, "r");
-    struct List* l = newList();
-    if (f == NULL)  return l;
-
-    struct Question *ques;
-    while(fgets(line, 500, f) != NULL){
-        ques = (struct Question*) malloc(sizeof(struct Question));
-        // printf("ques: %s..\n", line);
-        ques->id = atoi(strtok(line, "|"));
-        strcpy(ques->ques, strtok(NULL, "|"));
-        strcpy(ques->choices[0], strtok(NULL, "|"));
-        strcpy(ques->choices[1], strtok(NULL, "|"));
-        strcpy(ques->choices[2], strtok(NULL, "|"));
-        strcpy(ques->choices[3], strtok(NULL, "|"));
-        strcpy(ques->answer, strtok(NULL, "|"));
-        addToList(l, ques);
-    }
-
-    fclose(f);
-    return l;
-}
-
-
 int saveRoom(struct Room room) {
     FILE* roomFile = fopen(ROOM_STORAGE_PATH, "a");
 
@@ -213,4 +186,44 @@ int getAllRooms(struct Room* output) {
 
     fclose(f);
     return count;
+}
+
+int getAllOnRooms(struct Room* roomArr, int size, struct Room* output) {
+    if (!roomArr) return -1;
+    if (!output) output = (struct Room*) malloc(sizeof(struct Room) * 20);
+    
+    return -1;
+}
+
+int getAllQuestion(char *file_path, struct Question *quesList) {
+    if (!file_path || !quesList)  return -1;
+    char path[100] = "";
+    sprintf(path, "./server/%s", file_path);
+    FILE *f = fopen(path, "r");
+    if (!f) return 0;
+    
+    int n = 0;
+    char line[1000], delim[2] = "|";
+    
+    while (fgets(line, 1000, f) != NULL) {
+        quesList[n].id = atoi(strtok(line, delim));
+        strcpy(quesList[n].ques, strtok(NULL, delim));
+        strcpy(quesList[n].choices[0], strtok(NULL, delim));
+        strcpy(quesList[n].choices[1], strtok(NULL, delim));
+        strcpy(quesList[n].choices[2], strtok(NULL, delim));
+        strcpy(quesList[n].choices[3], strtok(NULL, delim));
+        strcpy(quesList[n++].answer, strtok(NULL, delim));
+    }
+    return n;
+}
+
+int questionToString(struct Question question, char* buf) {
+    if (!buf) return -1;
+    
+    sprintf(buf, "%d|%s|%s|%s|%s|%s|\n", question.id, question.ques,
+                                        question.choices[0],
+                                        question.choices[1],
+                                        question.choices[2],
+                                        question.choices[3]);
+    return strlen(buf);
 }

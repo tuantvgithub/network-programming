@@ -29,8 +29,8 @@ struct Question {
 	char answer[100];
 };
 
-struct List* getAllQuestion(char* quesFile);
-
+int getAllQuestion(char *file_path, struct Question *quesList);
+int questionToString(struct Question question, char* buf);
 
 struct Room {
 	char roomName[45]; 

@@ -97,6 +97,8 @@ struct Response* handleRequest(int connfd, struct Request *request) {
             return dropRoom(request);
         case LR:
             return listRoom(request);
+        case GET_EXAM:
+            return getExam(request);
         default:
             return createResponse(SYNTAX_ERROR, NULL);
     }
@@ -209,4 +211,40 @@ struct Response* listRoom(struct Request* req) {
     }
 
     return createResponse(OK, data);
+}
+
+struct Response* getExam(struct Request* req) {
+    if (!req)   return NULL;
+
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+
+    // tokens[0] : user, tokens[1] : roomName
+    struct Room* room = getRoomByRoomName(tokens[1]);
+
+    if (room) {
+        int joined = 0;
+        for (int i = 0; i < room->numOfPlayer; i++) {
+            if (!strcmp(tokens[0], room->players[i])) {
+                joined = 1;
+            }
+        }
+
+        if (joined && room->status == 1) {
+            struct Question* quesList = (struct Question*) malloc(sizeof(struct Question)*40);
+            int n_question = getAllQuestion1(room->questionsFile, quesList);
+            
+            char data[10000] = "";
+            for (int i = 0; i < n_question; i++) {
+                char buf[1000] = "";
+                questionToString(quesList[i], buf);
+                strcat(data, buf);
+            }
+            
+            free(quesList);
+            return createResponse(OK, data);
+        }
+    }
+    
+    return createResponse(GET_EXAM_FAIL, NULL);
 }

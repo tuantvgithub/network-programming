@@ -39,7 +39,9 @@ typedef enum {
 	NO_CONTENT = 51, 
 
 	CREATE_ROOM_FAILED = 71,
-	DROP_ROOM_FAILED = 72
+	DROP_ROOM_FAILED = 72,
+
+	GET_EXAM_FAIL
 } ResponseStatus;
 
 struct Response {
