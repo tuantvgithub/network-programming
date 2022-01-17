@@ -63,12 +63,13 @@ int main (int argc, char **argv) {
                 struct Request* req = (struct Request*) malloc(sizeof(struct Request));
                 if ((rcvBytes = receiveRequest(connfd, req)) <= 0)  break;
                 
-                printf("\nClient[%s:%d]:\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+                printf("Client[%s:%d]:\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
                 printf("Request:\n\t-opcode: %d\n\t-message: %s\n", req->opcode, req->message);
 
                 struct Response* res = handleRequest(connfd, req);
                 printf("Response:\n\t-message: %s\n\t-data: %s\n", res->message, 
-                            (strlen(res->data) == 0 ? "NULL" : res->data));
+                            (strlen(res->data) == 0 ? "NULL" : (strlen(res->data) > 15 ? "value.." : res->data)));
+                printf("--------------------------------------\n");
 
                 sendResponse(connfd, res);
             }
@@ -92,6 +93,8 @@ struct Response* handleRequest(int connfd, struct Request *request) {
             return doRegister(request);
         case CR:
             return createRoom(request);
+        case DR:
+            return dropRoom(request);
         case LR:
             return listRoom(request);
         default:
@@ -151,6 +154,10 @@ struct Response* createRoom(struct Request* req) {
     if (n != 3)
         return createResponse(SYNTAX_ERROR, NULL);
 
+    struct Account* acc = getAccountByUsername(tokens[0]);
+    if (!acc || strcmp(acc->role, "TEACHER"))
+        return createResponse(CREATE_ROOM_FAILED, NULL);
+
     if (getRoomByRoomName(tokens[1]))
         return createResponse(CREATE_ROOM_FAILED, NULL);
 
@@ -159,14 +166,29 @@ struct Response* createRoom(struct Request* req) {
     strcpy(room.roomName, tokens[1]);
     strcpy(room.questionsFile, tokens[2]);
     room.status = 0;
+    room.numOfStudents = 0;
 
     saveRoom(room);
     return createResponse(OK, NULL);
-
-    return createResponse(CREATE_ROOM_FAILED, NULL);
 }
 
+struct Response* dropRoom(struct Request* req) {
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
 
+    if (n != 2)
+        return createResponse(SYNTAX_ERROR, NULL);
+
+    struct Room* room = getRoomByRoomName(tokens[1]);
+    if (!room)
+        return createResponse(DROP_ROOM_FAILED, NULL);
+    if (strcmp(room->hostName, tokens[0]))
+        return createResponse(DROP_ROOM_FAILED, NULL);
+
+    deleteRoom(tokens[1]);
+
+    return createResponse(OK, NULL);
+}
 
 struct Response* listRoom(struct Request* req) {
     // struct Room* roomArr = NULL;
@@ -188,8 +210,8 @@ struct Response* listRoom(struct Request* req) {
         strcat(data, " ");
         strcat(data, onRoomArr[i].hostName);
         strcat(data, " ");
-        char numOfPlayerStr[20]; sprintf(numOfPlayerStr, "%d", onRoomArr[i].numOfPlayer);
-        strcat(data, numOfPlayerStr);
+        // char numOfPlayerStr[20]; sprintf(numOfPlayerStr, "%d", onRoomArr[i].numOfPlayer);
+        // strcat(data, numOfPlayerStr);
         strcat(data, "|");              
     }
 

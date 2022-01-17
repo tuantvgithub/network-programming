@@ -99,7 +99,6 @@ void teacherMenuScreen(int sockfd) {
 
         printf("--> Your choice: "); scanf("%d", &event);
         while(getchar() != '\n');
-        printf("\n");
         
         switch (event) {
             case 1:
@@ -240,7 +239,9 @@ void startExamScreen(int sockfd, char* roomName) {
 
 void dropRoomScreen(int sockfd, char* roomName) {
     char message[100];
-    strcpy(message, roomName);
+    strcpy(message, username);
+    strcat(message, " ");
+    strcat(message, roomName);
 
     struct Request* req = createRequest(DR, message);
     sendRequest(sockfd, req);

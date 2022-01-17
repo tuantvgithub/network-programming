@@ -73,7 +73,7 @@ int deleteActiveAccount(char* username) {
     if (!username) return -1;
 
     FILE* old = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "r");
-    FILE* new = fopen(ACTIVE_ACCOUNT_STORAGE_PATH_TMP, "w");
+    FILE* new = fopen(ACTIVE_ACCOUNT_STORAGE_TMP_PATH, "w");
 
     char _username[45];
     while (fscanf(old, "%s", _username) != EOF) {
@@ -83,7 +83,7 @@ int deleteActiveAccount(char* username) {
     }
 
     remove(ACTIVE_ACCOUNT_STORAGE_PATH);
-    rename(ACTIVE_ACCOUNT_STORAGE_PATH_TMP, ACTIVE_ACCOUNT_STORAGE_PATH);
+    rename(ACTIVE_ACCOUNT_STORAGE_TMP_PATH, ACTIVE_ACCOUNT_STORAGE_PATH);
 
     fclose(old);
     fclose(new);
@@ -123,27 +123,46 @@ int saveRoom(struct Room room) {
 
     if (roomFile == NULL) return -1;
 
-    fprintf(roomFile, "\n%s %s %s %d", room.hostName, room.roomName, 
-                                            room.questionsFile, room.status);
+    fprintf(roomFile, "%s %s %s %d %d\n", room.hostName, room.roomName, 
+                                            room.questionsFile, room.status, room.numOfStudents);
 
     fclose(roomFile);
     return 1;
 }
 
+void deleteRoom(char* roomName) {
+    if (!roomName) return;
+
+    FILE* old = fopen(ROOM_STORAGE_PATH, "r");
+    FILE* new = fopen(ROOM_STORAGE_TMP_PATH, "w");
+
+    struct Room room;
+    while (fscanf(old, "%s %s %s %d %d", room.hostName, room.roomName, 
+                                room.questionsFile, &room.status, &room.numOfStudents) != EOF) {
+        if (strcmp(roomName, room.roomName)) {
+            fprintf(new, "%s %s %s %d %d\n", room.hostName, room.roomName, 
+                                room.questionsFile, room.status, room.numOfStudents);
+        }
+    }
+
+    remove(ROOM_STORAGE_PATH);
+    rename(ROOM_STORAGE_TMP_PATH, ROOM_STORAGE_PATH);
+
+    fclose(old);
+    fclose(new);
+}
+
 struct Room* getRoomByRoomName(char* roomName) {
     FILE *f = fopen(ROOM_STORAGE_PATH, "r");
 
-    while (1) {
-        struct Room* room = (struct Room*) malloc(sizeof(struct Room));
-        if (fscanf(f, "%s %s %s %d", room->hostName, room->roomName,
-                                        room->questionsFile, &room->status) == EOF) {
-            break;
-        }
-
+    struct Room* room = (struct Room*) malloc(sizeof(struct Room));
+    while (fscanf(f, "%s %s %s %d %d", room->hostName, room->roomName,
+                                room->questionsFile, &room->status, &room->numOfStudents) != EOF) {
         if (!strcmp(roomName, room->roomName))
             return room;
     }
 
+    free(room);
     fclose(f);
     return NULL;
 }
@@ -157,12 +176,14 @@ int loadAllRooms(struct Room* output) {
 
 	char hostName[45];
 	char roomName[45];
-	int status;
+	int status, numOfStudents;
 	char questionsFile[45];
 
-    while (fscanf(f, "%s %s %s %d", hostName, roomName, questionsFile, &status) != EOF) {
+    while (fscanf(f, "%s %s %s %d %d", hostName, roomName, 
+                                    questionsFile, &status, &numOfStudents) != EOF) {
         struct Room tmp;
         tmp.status = status;
+        tmp.numOfStudents = numOfStudents;
         strcpy(tmp.roomName, roomName);
         strcpy(tmp.questionsFile, questionsFile);
         strcpy(tmp.hostName, hostName);
@@ -180,18 +201,3 @@ int getAllOnRooms(struct Room* roomArr, int size, struct Room* output) {
     
     return -1;
 }
-
-// int main() {
-//     struct Room* room = getRoomByRoomName("room2");
-//     if (!room) {
-//         printf("noooo\n");
-//     } else {
-//         printf("room: %s.\n", room->roomName);
-//         printf("{\nname: %s,\nstatus: %d,\nquesFile: %s,\nhostName: %s,\nnum_players: %d\n}\n",
-//             room->roomName, room->status, room->questionsFile, room->hostName, room->numOfPlayer);
-//         for (int i = 0; i<room->numOfPlayer; i++) {
-//             printf("player %d: %s\n", i+1, room->players[i]);
-//         }
-//     }
-
-// }

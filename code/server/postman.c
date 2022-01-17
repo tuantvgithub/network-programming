@@ -25,6 +25,8 @@ struct Request* createRequest(Opcode op, char* message) {
 
 void sendRequest(int sockfd, struct Request* request) {
     char *buff = (char*) malloc(sizeof(char)* MAXLEN );
+    strcpy(buff, "");
+
     sprintf(buff, "%d %s", request->opcode, request->message);
     
     // printf("send mess: %s\n", buff);
@@ -37,6 +39,8 @@ void sendRequest(int sockfd, struct Request* request) {
 
 int receiveRequest(int sockfd, struct Request* request) {
     char *buff = (char*) malloc(sizeof(char)*MAXLEN);
+    strcpy(buff, "");
+
     if (recv(sockfd, buff, MAXLEN, 0) < 0) {
         printf("\n-> Error: can't receive request.\n\n");
         free(buff);
@@ -80,6 +84,10 @@ void setResponseMessage(struct Response* response) {
             break;
         case CREATE_ROOM_FAILED:
             strcpy(response->message, "Create room failed");
+            break;
+        case DROP_ROOM_FAILED:
+            strcpy(response->message, "Drop room failed");
+            break;
         default:
             strcpy(response->message, "Exception");
     }
@@ -99,6 +107,7 @@ struct Response* createResponse(ResponseStatus status, char* data) {
 
 void sendResponse(int sockfd, struct Response* response) {
     char *buff = (char*) malloc(sizeof(char)* MAXLEN );
+    strcpy(buff, "");
     
     if (!response->data || strlen(response->data) == 0)
         sprintf(buff, "%d", response->status);
@@ -115,6 +124,7 @@ void sendResponse(int sockfd, struct Response* response) {
 
 void receiveResponse(int sockfd, struct Response* response) {
     char *buff = (char*) malloc(sizeof(char) * MAXLEN);
+    strcpy(buff, "");
 
     if (recv(sockfd, buff, MAXLEN, 0) < 0) {
         printf("\n-> Error: can't receive response.\n\n");

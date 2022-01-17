@@ -3,8 +3,10 @@
 
 #define ACCOUNT_STORAGE_PATH "./server/account.txt"
 #define ACTIVE_ACCOUNT_STORAGE_PATH "./server/active_account.txt"
-#define ACTIVE_ACCOUNT_STORAGE_PATH_TMP "./server/active_account_tmp.txt"
+#define ACTIVE_ACCOUNT_STORAGE_TMP_PATH "./server/active_account_tmp.txt"
+
 #define ROOM_STORAGE_PATH "./server/room.txt"
+#define ROOM_STORAGE_TMP_PATH "./server/room_tmp.txt"
 
 
 struct Account {
@@ -35,9 +37,11 @@ struct Room {
 	char hostName[45];
 	char questionsFile[45];
 	int status;
-	int numOfPlayer;
+	int numOfStudents;
 };
+
 int saveRoom(struct Room room);
+void deleteRoom(char* roomName);
 struct Room* getRoomByRoomName(char* roomName);
 int loadAllRooms(struct Room* roomArr);
 int getAllOnRooms(struct Room* roomArr, int size, struct Room* output);
