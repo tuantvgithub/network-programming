@@ -416,8 +416,6 @@ void outRoom(int sockfd, char* roomName) {
 }
 
 void logoutScreen(int sockfd) {
-    printf("__________ Logout Screen __________\n\n");
-
     char message[100];
     strcpy(message, username);
 

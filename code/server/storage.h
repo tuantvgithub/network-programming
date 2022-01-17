@@ -2,6 +2,8 @@
 #define __STORAGE_H__
 
 #define ACCOUNT_STORAGE_PATH "./server/account.txt"
+#define ACTIVE_ACCOUNT_STORAGE_PATH "./server/active_account.txt"
+#define ACTIVE_ACCOUNT_STORAGE_PATH_TMP "./server/active_account_tmp.txt"
 #define ROOM_STORAGE_PATH "./server/room.txt"
 
 
@@ -13,6 +15,10 @@ struct Account {
 
 int saveAccount(char* username, char* password, char* role);
 struct Account* getAccountByUsername(char* username);
+
+int accountIsActive(char* username);
+int saveActiveAccount(char* username);
+int deleteActiveAccount(char* username);
 
 struct Question {
 	int id;
@@ -26,11 +32,10 @@ struct List* getAllQuestion(char* quesFile);
 
 struct Room {
 	char roomName[45]; 
-	int status;
-	char questionsFile[45];
 	char hostName[45];
+	char questionsFile[45];
+	int status;
 	int numOfPlayer;
-	char* players[10];
 };
 int saveRoom(struct Room room);
 struct Room* getRoomByRoomName(char* roomName);

@@ -13,9 +13,9 @@ int saveAccount(char* username, char* password, char* role) {
     }
 
     FILE* accountStorage = fopen(ACCOUNT_STORAGE_PATH, "a");
-    if (accountStorage == NULL) return -1;
+    if (!accountStorage) return -1;
 
-    fprintf(accountStorage, "\n%s %s %s", username, password, role);
+    fprintf(accountStorage, "%s %s %s\n", username, password, role);
 
     fclose(accountStorage);
     return 1;
@@ -42,6 +42,53 @@ struct Account* getAccountByUsername(char* username) {
     }
     fclose(accountStorage);
     return NULL;
+}
+
+int accountIsActive(char* username) {
+    if (!username) return -1;
+
+    FILE* activeFile = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "r");
+
+    char _username[45];
+    while (fscanf(activeFile, "%s", _username) != EOF)
+        if (!strcmp(_username, username))
+            return 1;
+    
+    return -1;
+}
+
+int saveActiveAccount(char* username) {
+    if (!username) return -1;
+
+    FILE* activeFile = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "a");
+    if (!activeFile) return -1;
+
+    fprintf(activeFile, "%s\n", username);
+
+    fclose(activeFile);
+    return 1;
+}
+
+int deleteActiveAccount(char* username) {
+    if (!username) return -1;
+
+    FILE* old = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "r");
+    FILE* new = fopen(ACTIVE_ACCOUNT_STORAGE_PATH_TMP, "w");
+
+    char _username[45];
+    while (fscanf(old, "%s", _username) != EOF) {
+        if (strcmp(_username, username)) {
+            fprintf(new, "%s\n", _username);
+        }
+    }
+
+    remove(ACTIVE_ACCOUNT_STORAGE_PATH);
+    rename(ACTIVE_ACCOUNT_STORAGE_PATH_TMP, ACTIVE_ACCOUNT_STORAGE_PATH);
+
+    fclose(old);
+    fclose(new);
+
+    return 1;
 }
 
 
@@ -76,11 +123,8 @@ int saveRoom(struct Room room) {
 
     if (roomFile == NULL) return -1;
 
-    fprintf(roomFile, "\n%s %d %s %s %d", room.roomName, room.status, room.questionsFile,
-                                            room.hostName, room.numOfPlayer);
-    for (int i = 0; i<room.numOfPlayer; i++) {
-        fprintf(roomFile, " %s", room.players[i]);
-    }
+    fprintf(roomFile, "\n%s %s %s %d", room.hostName, room.roomName, 
+                                            room.questionsFile, room.status);
 
     fclose(roomFile);
     return 1;
@@ -91,22 +135,15 @@ struct Room* getRoomByRoomName(char* roomName) {
 
     while (1) {
         struct Room* room = (struct Room*) malloc(sizeof(struct Room));
-        if (fscanf(f, "%s %d %s %s %d", room->roomName,
-                                        &room->status,
-                                        room->questionsFile,
-                                        room->hostName,
-                                        &room->numOfPlayer) < 5) {
+        if (fscanf(f, "%s %s %s %d", room->hostName, room->roomName,
+                                        room->questionsFile, &room->status) == EOF) {
             break;
         }
-        for (int i = 0; i<room->numOfPlayer; i++) {
-            room->players[i] = (char*) malloc(sizeof(char)*45);
-            fscanf(f, "%s", room->players[i]);
-        }
 
-        if (!strcmp(roomName, room->roomName)) {
+        if (!strcmp(roomName, room->roomName))
             return room;
-        }
     }
+
     fclose(f);
     return NULL;
 }
@@ -118,25 +155,17 @@ int loadAllRooms(struct Room* output) {
     FILE *f = fopen(ROOM_STORAGE_PATH, "r");
     if (f == NULL || !output)  return -1;
 
-	char roomName[45]; 
+	char hostName[45];
+	char roomName[45];
 	int status;
 	char questionsFile[45];
-	char hostName[45];
-	int numOfPlayer;
 
-    while (fscanf(f, "%s %d %s %s %d", roomName, &status, 
-                            questionsFile, hostName, &numOfPlayer) != EOF) {
+    while (fscanf(f, "%s %s %s %d", hostName, roomName, questionsFile, &status) != EOF) {
         struct Room tmp;
         tmp.status = status;
-        tmp.numOfPlayer = numOfPlayer;
         strcpy(tmp.roomName, roomName);
         strcpy(tmp.questionsFile, questionsFile);
         strcpy(tmp.hostName, hostName);
-
-        for (int i = 0; i < numOfPlayer; i++) {
-            tmp.players[i] = (char*) malloc(sizeof(char) * 45);
-            fscanf(f, "%s", tmp.players[i]);
-        }
 
         output[count++] = tmp;
     }

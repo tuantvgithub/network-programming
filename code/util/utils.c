@@ -41,9 +41,54 @@ void addToList(struct List* l, void* value) {
         return;
     }
     
-    while (temp->next != NULL) {
+    while (temp->next) {
         temp = temp->next;
     }
     temp->next = node;
     l->count++;
+}
+
+int accountInList(struct List* l, char* username) {
+    // if (!l) return -1;
+
+    // struct Node* tmp = l->head;
+
+    // while (tmp) {
+    //     if (!strcmp(((struct Account*) tmp->value)->username, username))
+    //         return 1;
+    //     tmp = tmp->next;
+    // }
+
+    // return -1;
+}
+
+void deleteAccountFromList(struct List* l, char* username) {
+    // if (!l || !l->head) return;
+
+    // if (!strcmp(((struct Account*) l->head->value)->username, username)) {
+    //     struct Node* del = l->head;
+    //     l->head = del->next;
+    //     del->next = NULL;
+    //     free(del);
+    //     l->count--;
+    // }
+
+    // struct Node* prev = l->head;
+    // struct Node* cur = l->head->next;
+
+    // while (cur) {
+    //     if (!strcmp(((struct Account*) cur->value)->username, username)) {
+    //         prev->next = cur->next;
+    //         cur->next = NULL;
+    //         free(cur);
+    //         l->count--;
+    //         break;
+    //     }
+    //     prev = cur;
+    //     cur = cur->next;
+    // }
+}
+
+void deleteRoomFromList(struct List* l, char* roomName) {
+
 }

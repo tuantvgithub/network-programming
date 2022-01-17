@@ -1,3 +1,2 @@
-tuantv tuantv STUDENT
-admin admin TEACHER
-shelby shelby TEACHER
+admin admin1 STUDENT
+username password TEACHER

@@ -15,7 +15,6 @@
 #define MAXLINE 4096 /*max text line length*/
 #define LISTENQ 5 /*maximum number of client connections*/
 
-struct List* activeAccount = NULL;
 
 int main (int argc, char **argv) {
     if (argc != 2) {
@@ -64,7 +63,7 @@ int main (int argc, char **argv) {
                 struct Request* req = (struct Request*) malloc(sizeof(struct Request));
                 if ((rcvBytes = receiveRequest(connfd, req)) <= 0)  break;
                 
-                printf("Client[%s:%d]:\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+                printf("\nClient[%s:%d]:\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
                 printf("Request:\n\t-opcode: %d\n\t-message: %s\n", req->opcode, req->message);
 
                 struct Response* res = handleRequest(connfd, req);
@@ -110,15 +109,21 @@ struct Response* login(struct Request* req) {
     if (!account || strcmp(account->password, tokens[1]))
         return createResponse(LOGIN_FAILED, NULL);
 
-    if (!activeAccount) activeAccount = newList();
-    struct Node* accountNode = createNode(account);
-    addToList(activeAccount, accountNode);
+    if (accountIsActive(tokens[0]) > 0)
+        return createResponse(LOGIN_FAILED, NULL);
+
+    saveActiveAccount(tokens[0]);
 
     return createResponse(OK, account->role);
 }
 
 struct Response* logout(struct Request* req) {
-    // TODO delete account from active account list
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+    if (n != 1)
+        return createResponse(SYNTAX_ERROR, NULL);
+
+    deleteActiveAccount(tokens[0]);
 
     return createResponse(OK, NULL);
 }
@@ -140,23 +145,23 @@ struct Response* doRegister(struct Request* req) {
 }
 
 struct Response* createRoom(struct Request* req) {
-    if (!req) return NULL;
-      
     char* tokens[5];
-    split(req->message, " ", tokens);
+    int n = split(req->message, " ", tokens);
 
-    struct Room* room = getRoomByRoomName(tokens[1]);
-    if (!room) {
-        struct Room room;
-        strcpy(room.roomName, tokens[1]);
-        strcpy(room.questionsFile, tokens[2]);
-        strcpy(room.hostName, tokens[0]);
-        room.status = 0;
-        room.numOfPlayer = 0;
+    if (n != 3)
+        return createResponse(SYNTAX_ERROR, NULL);
 
-        saveRoom(room);
-        return createResponse(OK, NULL);
-    }
+    if (getRoomByRoomName(tokens[1]))
+        return createResponse(CREATE_ROOM_FAILED, NULL);
+
+    struct Room room;
+    strcpy(room.hostName, tokens[0]);
+    strcpy(room.roomName, tokens[1]);
+    strcpy(room.questionsFile, tokens[2]);
+    room.status = 0;
+
+    saveRoom(room);
+    return createResponse(OK, NULL);
 
     return createResponse(CREATE_ROOM_FAILED, NULL);
 }
