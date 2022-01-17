@@ -21,8 +21,8 @@ struct Question {
 	char answer[100];
 };
 
-struct List* getAllQuestion(char* quesFile);
-
+int getAllQuestion(char *file_path, struct Question *quesList);
+int questionToString(struct Question question, char* buf);
 
 struct Room {
 	char roomName[45]; 
@@ -36,20 +36,5 @@ int saveRoom(struct Room room);
 struct Room* getRoomByRoomName(char* roomName);
 int loadAllRooms(struct Room* roomArr);
 int getAllOnRooms(struct Room* roomArr, int size, struct Room* output);
-
-
-struct Node {
-	void* value;
-	struct Node* next;
-};
-
-struct List {
-	struct Node* head;
-	int count;
-};
-
-struct Node* createNode(void* value);
-struct List* newList();
-void addEnd(struct List* l, void* value);
 
 #endif // __STORAGE_H__
