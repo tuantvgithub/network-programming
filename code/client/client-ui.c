@@ -168,16 +168,16 @@ void createRoomScreen(int sockfd) {
 void teacherRoomScreen(int sockfd, char* roomName) {
     int event = 0;
 
-    while (event != 3) {
+    while (event != 4) {
         printf("__________ Room Screen __________\n\n");
 
         printf("-> 1. Show room info\n");
         printf("-> 2. Start exam\n");
-        printf("-> 3. Drop room\n\n");
+        printf("-> 3. Get results\n");
+        printf("-> 4. Drop room\n\n");
 
         printf("--> Your choice: "); scanf("%d", &event);
         while(getchar() != '\n');
-        printf("\n");
 
         switch (event) {
             case 1:
@@ -187,6 +187,9 @@ void teacherRoomScreen(int sockfd, char* roomName) {
                 startExamScreen(sockfd, roomName);
                 break;
             case 3:
+                getResults(sockfd, roomName);
+                break;
+            case 4:
                 dropRoomScreen(sockfd, roomName);
                 break;
             default:
@@ -218,7 +221,6 @@ void showRoomInfoScreen(int sockfd, char* roomName) {
     printf("\n-> Room name: %s\n", roomInfo[0]);
     printf("\n-> Question file: %s\n", roomInfo[1]);
     printf("\n-> Number of students: %s\n", roomInfo[2]);
-    // printf("\n-> Number of students submited: %s\n", roomInfo[3]);
 }
 
 void startExamScreen(int sockfd, char* roomName) {
@@ -235,6 +237,10 @@ void startExamScreen(int sockfd, char* roomName) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
     }
+}
+
+void getResults(int sockfd, char* roomName) {
+
 }
 
 void dropRoomScreen(int sockfd, char* roomName) {
@@ -301,21 +307,16 @@ void listRoomScreen(int sockfd) {
         return;
     }
 
-    char* rooms[40];
+    char* rooms[50];
     int n = split(res->data, "|", rooms);
 
     for (int i = 0; i < n; i++) {
         char* tokens[20];
-        int m = split(rooms[i], " ", tokens);
-        
-        if (m != 3) {
-            printf("\n-> Debug: have a problem in listRoomScreen() method.\n\n");
-            exit(1);
-        }
+        split(rooms[i], " ", tokens);
 
         printf("-> %d\n", i+1);
-        printf("---> Room: %s\n", tokens[0]); 	// room name
-        printf("---> Host: %s\n\n", tokens[1]); 	// host name
+        printf("---> Room: %s\n", tokens[0]);
+        printf("---> Host: %s\n\n", tokens[1]);
     }
 }
 
@@ -431,8 +432,8 @@ void logoutScreen(int sockfd) {
         return;
     }
 
-    printf("\n->Success: logout successfully");
-    printf("\n->Notify: bye %s\n\n", username);
+    printf("\n-> Success: logout successfully");
+    printf("\n-> Notify: bye %s\n\n", username);
     strcpy(username, "");
 }
 

@@ -43,8 +43,7 @@ struct Room {
 int saveRoom(struct Room room);
 void deleteRoom(char* roomName);
 struct Room* getRoomByRoomName(char* roomName);
-int loadAllRooms(struct Room* roomArr);
-int getAllOnRooms(struct Room* roomArr, int size, struct Room* output);
+int getAllRooms(struct Room* roomArr);
 
 
 #endif // __STORAGE_H__

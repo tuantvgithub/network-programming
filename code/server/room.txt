@@ -1,1 +1,1 @@
-hostName roomName questionFile 0 0
+hostName roomName questionFile status numOfStudents

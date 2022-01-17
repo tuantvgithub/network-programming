@@ -28,6 +28,9 @@ struct Account* getAccountByUsername(char* username) {
     if (!account) return NULL;
     if (!accountStorage) return NULL;
 
+    char spam[500];
+    fgets(spam, 500, accountStorage);
+
     char _username[45];
     char _password[45];
     char _role[45];
@@ -48,6 +51,9 @@ int accountIsActive(char* username) {
     if (!username) return -1;
 
     FILE* activeFile = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "r");
+
+    char spam[500];
+    fgets(spam, 500, activeFile);
 
     char _username[45];
     while (fscanf(activeFile, "%s", _username) != EOF)
@@ -74,6 +80,10 @@ int deleteActiveAccount(char* username) {
 
     FILE* old = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "r");
     FILE* new = fopen(ACTIVE_ACCOUNT_STORAGE_TMP_PATH, "w");
+
+    char spam[500];
+    fgets(spam, 500, old);
+    fprintf(new, "%s\n", "username");
 
     char _username[45];
     while (fscanf(old, "%s", _username) != EOF) {
@@ -136,6 +146,10 @@ void deleteRoom(char* roomName) {
     FILE* old = fopen(ROOM_STORAGE_PATH, "r");
     FILE* new = fopen(ROOM_STORAGE_TMP_PATH, "w");
 
+    char spam[500];
+    fgets(spam, 500, old);
+    fprintf(new, "%s\n", "hostName roomName questionFile status numOfStudents");
+
     struct Room room;
     while (fscanf(old, "%s %s %s %d %d", room.hostName, room.roomName, 
                                 room.questionsFile, &room.status, &room.numOfStudents) != EOF) {
@@ -155,6 +169,9 @@ void deleteRoom(char* roomName) {
 struct Room* getRoomByRoomName(char* roomName) {
     FILE *f = fopen(ROOM_STORAGE_PATH, "r");
 
+    char spam[500];
+    fgets(spam, 500, f);
+
     struct Room* room = (struct Room*) malloc(sizeof(struct Room));
     while (fscanf(f, "%s %s %s %d %d", room->hostName, room->roomName,
                                 room->questionsFile, &room->status, &room->numOfStudents) != EOF) {
@@ -167,12 +184,15 @@ struct Room* getRoomByRoomName(char* roomName) {
     return NULL;
 }
 
-int loadAllRooms(struct Room* output) {
+int getAllRooms(struct Room* output) {
     if (!output) output = (struct Room*) malloc(sizeof(struct Room) * 20);
     
     int count = 0;
     FILE *f = fopen(ROOM_STORAGE_PATH, "r");
     if (f == NULL || !output)  return -1;
+
+    char spam[500];
+    fgets(spam, 500, f);
 
 	char hostName[45];
 	char roomName[45];
@@ -193,11 +213,4 @@ int loadAllRooms(struct Room* output) {
 
     fclose(f);
     return count;
-}
-
-int getAllOnRooms(struct Room* roomArr, int size, struct Room* output) {
-    if (!roomArr) return -1;
-    if (!output) output = (struct Room*) malloc(sizeof(struct Room) * 20);
-    
-    return -1;
 }

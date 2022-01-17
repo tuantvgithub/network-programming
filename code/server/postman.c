@@ -112,7 +112,7 @@ void sendResponse(int sockfd, struct Response* response) {
     if (!response->data || strlen(response->data) == 0)
         sprintf(buff, "%d", response->status);
     else
-        sprintf(buff, "%d|%s", response->status, response->data);
+        sprintf(buff, "%d&%s", response->status, response->data);
 
     // printf("send res: %s\n", buff);
     
@@ -132,10 +132,13 @@ void receiveResponse(int sockfd, struct Response* response) {
         return;
     }
 
+    // printf("buff: %s\n", buff);
+
     char* tokens[5];
-    int n = split(buff, "|", tokens);
-    
+    int n = split(buff, "&", tokens);
+
     response->status = atoi(tokens[0]);
     setResponseMessage(response);
     if (n > 1) strcpy(response->data, tokens[1]);
+    else strcpy(response->data, "");
 }

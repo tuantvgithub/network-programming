@@ -17,8 +17,4 @@ struct Node* createNode(void* value);
 struct List* newList();
 void addToList(struct List* l, void* value);
 
-int accountInList(struct List* l, char* username);
-void deleteAccountFromList(struct List* l, char* username);
-void deleteRoomFromList(struct List* l, char* roomName);
-
 #endif // __UTILS_H__

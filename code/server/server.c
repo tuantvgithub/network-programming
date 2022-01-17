@@ -68,7 +68,7 @@ int main (int argc, char **argv) {
 
                 struct Response* res = handleRequest(connfd, req);
                 printf("Response:\n\t-message: %s\n\t-data: %s\n", res->message, 
-                            (strlen(res->data) == 0 ? "NULL" : (strlen(res->data) > 15 ? "value.." : res->data)));
+                            (strlen(res->data) == 0 ? "NULL" : res->data));
                 printf("--------------------------------------\n");
 
                 sendResponse(connfd, res);
@@ -191,28 +191,21 @@ struct Response* dropRoom(struct Request* req) {
 }
 
 struct Response* listRoom(struct Request* req) {
-    // struct Room* roomArr = NULL;
-    // struct Room* onRoomArr;
-    struct Room* onRoomArr = (struct Room*) malloc(sizeof(struct Room)*20);
-    int onRoomArrSize = loadAllRooms(onRoomArr);   
+    struct Room* roomArr = (struct Room*) malloc(sizeof(struct Room)*20);
+    int roomArrSize = getAllRooms(roomArr);
 
-    if (onRoomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
-    if (onRoomArrSize == 0) return createResponse(NO_CONTENT, NULL);
-
-    // struct Room* onRoomArr = NULL;
-    // int onRoomArrSize = getAllOnRooms(roomArr, roomArrSize, onRoomArr);
-    // if (onRoomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
-    // if (onRoomArrSize == 0) return createResponse(NO_CONTENT, NULL);
+    if (roomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
+    if (roomArrSize == 0) return createResponse(NO_CONTENT, NULL);
 
     char data[1000] = "";
-    for (int i = 0; i < onRoomArrSize; i++) {
-        strcat(data, onRoomArr[i].roomName);
+    strcat(data, roomArr[0].roomName);
+    strcat(data, " ");
+    strcat(data, roomArr[0].hostName);
+    for (int i = 1; i < roomArrSize; i++) {
+        strcat(data, "|");
+        strcat(data, roomArr[i].roomName);
         strcat(data, " ");
-        strcat(data, onRoomArr[i].hostName);
-        strcat(data, " ");
-        // char numOfPlayerStr[20]; sprintf(numOfPlayerStr, "%d", onRoomArr[i].numOfPlayer);
-        // strcat(data, numOfPlayerStr);
-        strcat(data, "|");              
+        strcat(data, roomArr[i].hostName);
     }
 
     return createResponse(OK, data);
