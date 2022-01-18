@@ -42,12 +42,13 @@ struct Room {
 };
 
 int saveRoom(struct Room room);
-void deleteRoom(char* roomName);
-void updateRoom(struct Room* room);
+int deleteRoom(char* roomName);
+int updateRoom(struct Room* room);
 struct Room* getRoomByRoomName(char* roomName);
 int getAllRooms(struct Room* roomArr);
 
-void saveResult(char* roomName, char* username, char* score);
+int saveResult(char* roomName, char* username, char* score);
+int isSubmited(char* roomName, char* username);
 int getAllResult(char* roomName, char** output);
 
 #endif // __STORAGE_H__

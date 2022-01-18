@@ -64,7 +64,7 @@ int main (int argc, char **argv) {
                 if ((rcvBytes = receiveRequest(connfd, req)) <= 0)  break;
                 
                 printf("Client[%s:%d]:\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-                printf("Request:\n  -opcode: %d\n  -message: %s\n", req->opcode, req->message);
+                printf("Request:\n  -opcode: %s\n  -message: %s\n", readOpcode(req->opcode), req->message);
 
                 struct Response* res = handleRequest(connfd, req);
                 printf("Response:\n  -message: %s\n  -data: %s\n", res->message, 
@@ -107,6 +107,8 @@ struct Response* handleRequest(int connfd, struct Request *request) {
             return outRoom(request);
         case START:
             return startExam(request);
+        case STOP:
+            return stopExam(request);
         case GET_EXAM:
             return getExam(request);
         case GET_RESULT:
@@ -125,15 +127,19 @@ struct Response* login(struct Request* req) {
         return createResponse(SYNTAX_ERROR, NULL);
 
     struct Account* account = getAccountByUsername(tokens[0]);
-    if (!account || strcmp(account->password, tokens[1]))
-        return createResponse(LOGIN_FAILED, NULL);
+    if (!account)
+        return createResponse(USERNAME_NOT_EXISTS, NULL);
+
+    if (strcmp(account->password, tokens[1]))
+        return createResponse(INCORRECT_PASSWORD, NULL);
 
     if (accountIsActive(tokens[0]) > 0)
-        return createResponse(LOGIN_FAILED, NULL);
+        return createResponse(ACCOUNT_ALREADY_LOGGED_IN, NULL);
 
-    saveActiveAccount(tokens[0]);
+    if (saveActiveAccount(tokens[0]) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
-    char data[1000] = "";
+    char data[1000];
     strcpy(data, account->role);
 
     free(account);
@@ -147,7 +153,8 @@ struct Response* logout(struct Request* req) {
     if (n != 1)
         return createResponse(SYNTAX_ERROR, NULL);
 
-    deleteActiveAccount(tokens[0]);
+    if (deleteActiveAccount(tokens[0]) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     freeArr(tokens, n);
     return createResponse(OK, NULL);
@@ -161,7 +168,7 @@ struct Response* doRegister(struct Request* req) {
     
     struct Account* account = getAccountByUsername(tokens[0]);
     if (account)
-        return createResponse(REGISTER_FAILED, NULL);
+        return createResponse(USERNAME_ALREADY_EXISTS, NULL);
     
     if (saveAccount(tokens[0], tokens[1], tokens[2]) < 0)
         return createResponse(SERVER_ERROR, NULL);
@@ -179,11 +186,14 @@ struct Response* createRoom(struct Request* req) {
         return createResponse(SYNTAX_ERROR, NULL);
 
     struct Account* acc = getAccountByUsername(tokens[0]);
-    if (!acc || strcmp(acc->role, "TEACHER"))
-        return createResponse(CREATE_ROOM_FAILED, NULL);
+    if (!acc)
+        return createResponse(USERNAME_NOT_EXISTS, NULL);
+    
+    if (strcmp(acc->role, "TEACHER"))
+        return createResponse(NOT_ALLOWED, NULL);
 
     if (getRoomByRoomName(tokens[1]))
-        return createResponse(CREATE_ROOM_FAILED, NULL);
+        return createResponse(ROOM_ALREADY_EXISTS, NULL);
 
     struct Room room;
     strcpy(room.hostName, tokens[0]);
@@ -193,7 +203,8 @@ struct Response* createRoom(struct Request* req) {
     room.status = 0;
     room.numOfStudents = 0;
 
-    saveRoom(room);
+    if (saveRoom(room) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     free(acc);
     freeArr(tokens, n);
@@ -209,11 +220,13 @@ struct Response* dropRoom(struct Request* req) {
 
     struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room)
-        return createResponse(DROP_ROOM_FAILED, NULL);
-    if (strcmp(room->hostName, tokens[0]))
-        return createResponse(DROP_ROOM_FAILED, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
 
-    deleteRoom(tokens[1]);
+    if (strcmp(room->hostName, tokens[0]))
+        return createResponse(NOT_ALLOWED, NULL);
+
+    if (deleteRoom(tokens[1]) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     free(room);
     freeArr(tokens, n);
@@ -225,12 +238,10 @@ struct Response* listRoom(struct Request* req) {
     int roomArrSize = getAllRooms(roomArr);
 
     if (roomArrSize < 0) return createResponse(SERVER_ERROR, NULL);
-    if (roomArrSize == 0) return createResponse(NO_CONTENT, NULL);
+    if (roomArrSize == 0) return createResponse(OK, NULL);
 
     char data[1000] = "";
-    strcat(data, roomArr[0].roomName);
-    strcat(data, " ");
-    strcat(data, roomArr[0].hostName);
+    sprintf(data, "%s %s", roomArr[0].roomName, roomArr[0].hostName);
     for (int i = 1; i < roomArrSize; i++) {
         strcat(data, "|");
         strcat(data, roomArr[i].roomName);
@@ -251,13 +262,13 @@ struct Response* showRoom(struct Request* req) {
 
     struct Room* room = getRoomByRoomName(tokens[0]);
     if (!room)
-        return createResponse(ROOM_NOT_FOUND, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
     
     char data[1000] = "";
     char statusStr[100];
     if (room->status == 0) strcpy(statusStr, "pending");
     else if (room->status == 1) strcpy(statusStr, "started");
-    else strcpy(statusStr, "end");
+    else strcpy(statusStr, "finished");
 
     sprintf(data, "%s|%s|%d|%s", room->roomName, room->hostName, room->numOfStudents, statusStr);
 
@@ -275,10 +286,11 @@ struct Response* joinRoom(struct Request* req) {
     
     struct Room* room = getRoomByRoomName(tokens[0]);
     if (!room)
-        return createResponse(ROOM_NOT_FOUND, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
 
     room->numOfStudents += 1;
-    updateRoom(room);
+    if (updateRoom(room) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     freeArr(tokens, n);
     free(room);
@@ -292,12 +304,13 @@ struct Response* outRoom(struct Request* req) {
     if (n != 1)
         return createResponse(SYNTAX_ERROR, NULL);
     
-    struct Room* room = getRoomByRoomName(tokens[0]);
+    struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room)
-        return createResponse(ROOM_NOT_FOUND, NULL);
+        return createResponse(OK, NULL);
 
     room->numOfStudents -= 1;
-    updateRoom(room);
+    if (updateRoom(room) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     freeArr(tokens, n);
     free(room);
@@ -308,20 +321,22 @@ struct Response* startExam(struct Request* req) {
     char* tokens[5];
     int n = split(req->message, " ", tokens);
 
-    // tokens[0] : user, tokens[1] : roomName
     if (n != 2)
         return createResponse(SYNTAX_ERROR, NULL);
     
     struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room)
-        return createResponse(ROOM_NOT_FOUND, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
+
     if (strcmp(tokens[0], room->hostName))
-        return createResponse(START_FAILED, NULL);
+        return createResponse(NOT_ALLOWED, NULL);
+
     if (room->status == 1)
         return createResponse(OK, NULL);
 
     room->status = 1;
-    updateRoom(room);
+    if (updateRoom(room) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     freeArr(tokens, n);
     free(room);
@@ -332,20 +347,22 @@ struct Response* stopExam(struct Request* req) {
     char* tokens[5];
     int n = split(req->message, " ", tokens);
 
-    // tokens[0] : user, tokens[1] : roomName
     if (n != 2)
         return createResponse(SYNTAX_ERROR, NULL);
     
     struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room)
-        return createResponse(ROOM_NOT_FOUND, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
+
     if (strcmp(tokens[0], room->hostName))
-        return createResponse(STOP_EXAM_FAILED, NULL);
+        return createResponse(NOT_ALLOWED, NULL);
+
     if (room->status == 2)
         return createResponse(OK, NULL);
 
     room->status = 2;
-    updateRoom(room);
+    if (updateRoom(room) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     freeArr(tokens, n);
     free(room);
@@ -356,14 +373,20 @@ struct Response* getExam(struct Request* req) {
     char* tokens[5];
     int n = split(req->message, " ", tokens);
 
-    if (n != 1)
+    if (n != 2)
         return createResponse(SYNTAX_ERROR, NULL);
 
-    struct Room* room = getRoomByRoomName(tokens[0]);
+    if (isSubmited(tokens[1], tokens[0]) > 0)
+        return createResponse(NOT_ALLOWED, NULL);
+
+    struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room)
-        return createResponse(ROOM_NOT_FOUND, NULL);
-    if (room->status != 1)
-        return createResponse(GET_EXAM_FAILED, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
+
+    if (room->status == 0)
+        return createResponse(EXAM_NOT_STARTED, NULL);
+    if (room->status == 2)
+        return createResponse(EXAM_ALREADY_FINISHED, NULL);
 
     char* questions[100];
     int n_question = getAllQuestions(room->questionFile, questions);
@@ -386,18 +409,23 @@ struct Response* getResult(struct Request* req) {
     char* tokens[5];
     int n = split(req->message, " ", tokens);
 
-    if (n != 1)
+    if (n != 2)
         return createResponse(SYNTAX_ERROR, NULL);
 
-    struct Room* room = getRoomByRoomName(tokens[0]);
+    struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room)
-        return createResponse(ROOM_NOT_FOUND, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
+
+    if (strcmp(tokens[0], room->hostName))
+        return createResponse(NOT_ALLOWED, NULL);
 
     char* results[100];
-    int n_result = getAllResult(tokens[0], results);
+    int n_result = getAllResult(tokens[1], results);
     
-    if (n_result < 1)
-        return createResponse(NO_CONTENT, NULL);
+    if (n_result < 0)
+        return createResponse(SERVER_ERROR, NULL);
+    if (n_result == 0)
+        return createResponse(OK, NULL);
 
     char data[10000] = "";
     strcat(data, results[0]);
@@ -422,9 +450,12 @@ struct Response* answer(struct Request* req) {
     
     struct Room* room = getRoomByRoomName(tokens[1]);
     if (!room)
-        return createResponse(ANSWER_FAILED, NULL);
+        return createResponse(ROOM_NOT_EXISTS, NULL);
+
     if (room->status == 2)
-        return createResponse(ANSWER_FAILED, NULL);
+        return createResponse(EXAM_ALREADY_FINISHED, NULL);
+    if (room->status == 0)
+        return createResponse(EXAM_NOT_STARTED, NULL);
     
     char* userAnswers[100];
     int n_userAnswers = split(tokens[2], "|", userAnswers);
@@ -434,15 +465,16 @@ struct Response* answer(struct Request* req) {
 
     int correctCount = 0;
     for (int i = 0; i < n_correctAnswers; i++) {
-        // printf("%s - %s\n", userAnswers[i], correctAnswers[i]);
         if (!strcmp(correctAnswers[i], userAnswers[i]))
             correctCount++;
     }
 
     char data[1000] = "";
-    gcvt(correctCount / n_correctAnswers * 10.0, 2, data);
+    float score = (float) correctCount / n_correctAnswers * 10;
+    gcvt(score, 2, data);
 
-    saveResult(room->roomName, tokens[0], data);
+    if (saveResult(room->roomName, tokens[0], data) < 0)
+        return createResponse(SERVER_ERROR, NULL);
 
     freeArr(tokens, n);
     freeArr(userAnswers, n_userAnswers);

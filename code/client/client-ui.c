@@ -41,7 +41,6 @@ void homePageScreen(int sockfd) {
 }
 
 void loginScreen(int sockfd) {
-
     printf("__________ Login Screen __________\n\n");
 
     char _username[100];
@@ -55,10 +54,10 @@ void loginScreen(int sockfd) {
     scanf("%[^\n]s", _password);
     while(getchar() != '\n');
 
-    char message[100];
-    strcpy(message, _username);
-    strcat(message, " ");
-    strcat(message, _password);
+    printf("\n");
+
+    char message[1000];
+    sprintf(message, "%s %s", _username, _password);
 
     struct Request* req = createRequest(LOGIN, message);
     sendRequest(sockfd, req);
@@ -67,14 +66,13 @@ void loginScreen(int sockfd) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
         return;
     }
 
     strcpy(username, _username);
     strcpy(role, res->data);
-    printf("\n-> Success: login successfully.");
-    printf("\n-> Notify: hello %s\n\n", username);
+    printf("-> Success: welcome back %s\n\n", username);
 
     menuScreen(sockfd);
 }
@@ -85,20 +83,21 @@ void menuScreen(int sockfd) {
     else if (!strcmp(role, "STUDENT"))
         studentMenuScreen(sockfd);
     else
-        printf("\n-> Error: problem displaying function menu.\n\n");
+        printf("-> Error: problem displaying function menu.\n\n");
 }
 
 void teacherMenuScreen(int sockfd) {
     int event = 0;
 
     while (event != 2) {
-        printf("__________ Teacher Menu Screen __________\n\n");
+        printf("__________ Menu Screen (Teacher) __________\n\n");
         
         printf("-> 1. Create room\n");
         printf("-> 2. Logout\n\n");
 
         printf("--> Your choice: "); scanf("%d", &event);
         while(getchar() != '\n');
+        printf("\n");
         
         switch (event) {
             case 1:
@@ -108,7 +107,7 @@ void teacherMenuScreen(int sockfd) {
                 logoutScreen(sockfd);
                 break;
             default:
-                printf("\n-> Error: your choice is not valid.\n\n");
+                printf("-> Error: your choice is not valid.\n\n");
         }
     }
 }
@@ -126,7 +125,7 @@ void createRoomScreen(int sockfd) {
         if (validateRoomName(roomName) > 0)
             roomNameIsValid = 1;
         else
-            printf("\n-> error: room name is not valid.\n\n");
+            printf("\n-> Error: room name is not valid.\n\n");
     }
 
     char questionFileName[100];
@@ -139,7 +138,7 @@ void createRoomScreen(int sockfd) {
         if (validateQuestionFileName(questionFileName) > 0)
             questionFileNameIsValid = 1;
         else
-            printf("\n-> error: question file is not valid.\n\n");
+            printf("\n-> Error: question file is not valid.\n\n");
     }
 
     char answerFileName[100];
@@ -149,10 +148,10 @@ void createRoomScreen(int sockfd) {
         printf("--> answer file: ");
         scanf("%[^\n]s", answerFileName);
         while(getchar() != '\n');
-        if (validateQuestionFileName(answerFileName) > 0)
+        if (validateAnswerFileName(answerFileName) > 0)
             answerFileNameIsValid = 1;
         else
-            printf("\n-> error: answer file is not valid.\n\n");
+            printf("\n-> Error: answer file is not valid.\n\n");
     }
 
     char message[1000];
@@ -169,8 +168,7 @@ void createRoomScreen(int sockfd) {
         return;
     }
 
-    printf("\n-> sucess: create room successfully.\n\n");
-    
+    printf("\n-> Sucess: create room successfully.\n\n");
     teacherRoomScreen(sockfd, roomName);
 }
 
@@ -178,7 +176,7 @@ void teacherRoomScreen(int sockfd, char* roomName) {
     int event = 0;
 
     while (event != 5) {
-        printf("__________ Room Screen __________\n\n");
+        printf("__________ Room Screen (Teacher) __________\n\n");
 
         printf("-> 1. Show room info\n");
         printf("-> 2. Start exam\n");
@@ -188,6 +186,7 @@ void teacherRoomScreen(int sockfd, char* roomName) {
 
         printf("--> Your choice: "); scanf("%d", &event);
         while(getchar() != '\n');
+        printf("\n");
 
         switch (event) {
             case 1:
@@ -206,7 +205,7 @@ void teacherRoomScreen(int sockfd, char* roomName) {
                 dropRoomScreen(sockfd, roomName);
                 break;
             default:
-                printf("\n-> Error: your choice is not valid.\n\n");
+                printf("-> Error: your choice is not valid.\n\n");
         }
     }
 }
@@ -214,7 +213,7 @@ void teacherRoomScreen(int sockfd, char* roomName) {
 void showRoomInfoScreen(int sockfd, char* roomName) {
     printf("__________ Room information Screen __________\n\n");
 
-    char message[100];
+    char message[1000];
     strcpy(message, roomName);
     
     struct Request* req = createRequest(SR, message);
@@ -231,17 +230,16 @@ void showRoomInfoScreen(int sockfd, char* roomName) {
     char* roomInfo[20];
     split(res->data, "|", roomInfo);
     
-    printf("-> Room name: %s\n", roomInfo[0]);
-    printf("-> Host: %s\n", roomInfo[1]);
-    printf("-> Number of students: %s\n", roomInfo[2]);
-    printf("-> Status: %s\n\n", roomInfo[3]);
+    printf("%-20s %-5s\n", "-> Room name:", roomInfo[0]);
+    printf("%-20s %-5s\n", "-> Host:", roomInfo[1]);
+    printf("%-20s %-5s\n", "-> Students:", roomInfo[2]);
+    printf("%-20s %-5s\n", "-> Status:", roomInfo[3]);
+    printf("\n");
 }
 
 void startExam(int sockfd, char* roomName) {
-    char message[100];
-    strcpy(message, username);
-    strcat(message, " ");
-    strcat(message, roomName);
+    char message[1000];
+    sprintf(message, "%s %s", username, roomName);
 
     struct Request* req = createRequest(START, message);
     sendRequest(sockfd, req);
@@ -250,18 +248,16 @@ void startExam(int sockfd, char* roomName) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
         return;
     }
 
-    printf("\n-> Sucess: start exam successfully.\n\n");
+    printf("-> Sucess: start exam successfully.\n\n");
 }
 
 void stopExam(int sockfd, char* roomName) {
-    char message[100];
-    strcpy(message, username);
-    strcat(message, " ");
-    strcat(message, roomName);
+    char message[1000];
+    sprintf(message, "%s %s", username, roomName);
 
     struct Request* req = createRequest(STOP, message);
     sendRequest(sockfd, req);
@@ -270,17 +266,17 @@ void stopExam(int sockfd, char* roomName) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
         return;
     }
 
-    printf("\n-> Sucess: stop exam successfully.\n\n");
+    printf("-> Sucess: stop exam successfully.\n\n");
 }
 
 void getResults(int sockfd, char* roomName) {
     printf("__________ Result Screen __________\n\n");
-    char message[100] = "";
-    strcat(message, roomName);
+    char message[1000];
+    sprintf(message, "%s %s", username, roomName);
 
     struct Request* req = createRequest(GET_RESULT, message);
     sendRequest(sockfd, req);
@@ -289,7 +285,12 @@ void getResults(int sockfd, char* roomName) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
+        return;
+    }
+
+    if (!res->data || strlen(res->data) == 0) {
+        printf("-> No content\n\n");
         return;
     }
 
@@ -311,10 +312,8 @@ void getResults(int sockfd, char* roomName) {
 }
 
 void dropRoomScreen(int sockfd, char* roomName) {
-    char message[100];
-    strcpy(message, username);
-    strcat(message, " ");
-    strcat(message, roomName);
+    char message[1000];
+    sprintf(message, "%s %s", username, roomName);
 
     struct Request* req = createRequest(DR, message);
     sendRequest(sockfd, req);
@@ -323,18 +322,18 @@ void dropRoomScreen(int sockfd, char* roomName) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
         return;
     }
 
-    printf("\n-> Success: drop room successfully.\n\n");
+    printf("-> Success: drop room successfully.\n\n");
 }
 
 void studentMenuScreen(int sockfd) {
     int event = 0;
 
     while (event != 3) {
-        printf("__________ Student Menu Screen __________\n\n");
+        printf("__________ Menu Screen (Student) __________\n\n");
         
         printf("-> 1. List room\n");
         printf("-> 2. Join room\n");
@@ -355,7 +354,7 @@ void studentMenuScreen(int sockfd) {
                 logoutScreen(sockfd);
                 break;
             default:
-                printf("\n-> Error: your choice is not valid.\n\n");
+                printf("-> Error: your choice is not valid.\n\n");
         }
     }
 }
@@ -371,6 +370,11 @@ void listRoomScreen(int sockfd) {
 
     if (res->status != OK) {
         printf("\n-> Failed: %s\n\n", res->message);
+        return;
+    }
+
+    if (!res->data || strlen(res->data) == 0) {
+        printf("-> No centent\n\n");
         return;
     }
 
@@ -394,8 +398,9 @@ void joinRoomScreen(int sockfd) {
     printf("-> room name: ");
     scanf("%[^\n]s", roomName);
     while(getchar() != '\n');
+    printf("\n");
 
-    char message[100];
+    char message[1000];
     strcpy(message, roomName);
 
     struct Request* req = createRequest(JOIN, message);
@@ -405,12 +410,11 @@ void joinRoomScreen(int sockfd) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
         return;
     }
 
-    printf("\n-> Success: joined the room %s.\n\n", roomName);
-
+    printf("-> Success: joined the room <%s>.\n\n", roomName);
     studentRoomScreen(sockfd, roomName);
 }
 
@@ -439,7 +443,7 @@ void studentRoomScreen(int sockfd, char* roomName) {
                 outRoom(sockfd, roomName);
                 break;
             default:
-                printf("\n-> Error: your choice is not valid.\n\n");
+                printf("-> Error: your choice is not valid.\n\n");
         }
     }
 }
@@ -447,8 +451,8 @@ void studentRoomScreen(int sockfd, char* roomName) {
 void examScreen(int sockfd, char* roomName) {
     printf("__________ Exam Screen __________\n");
     
-    char message[100];
-    strcpy(message, roomName);
+    char message[1000];
+    sprintf(message, "%s %s", username, roomName);
 
     struct Request* req = createRequest(GET_EXAM, message);
     sendRequest(sockfd, req);
@@ -465,10 +469,7 @@ void examScreen(int sockfd, char* roomName) {
     int n = split(res->data, "|", questions);
 
     char answers[10000] = "";
-    strcat(answers, username);
-    strcat(answers, "&");
-    strcat(answers, roomName);
-    strcat(answers, "&");
+    sprintf(answers, "%s&%s&", username, roomName);
 
     for (int i = 0; i < n; i++) {
         char* tokens[100];
@@ -508,7 +509,7 @@ void examScreen(int sockfd, char* roomName) {
 }
 
 void outRoom(int sockfd, char* roomName) {
-    char message[100];
+    char message[1000];
     strcpy(message, roomName);
 
     struct Request* req = createRequest(OUT, message);
@@ -518,15 +519,15 @@ void outRoom(int sockfd, char* roomName) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
         return;
     }
 
-    printf("\n-> Success: Out room.\n\n");
+    printf("-> Success: Out room.\n\n");
 }
 
 void logoutScreen(int sockfd) {
-    char message[100];
+    char message[1000];
     strcpy(message, username);
 
     struct Request* req = createRequest(LOGOUT, message);
@@ -536,13 +537,12 @@ void logoutScreen(int sockfd) {
     receiveResponse(sockfd, res);
 
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+        printf("-> Failed: %s\n\n", res->message);
         return;
     }
 
-    printf("\n-> Success: logout successfully");
-    printf("\n-> Notify: bye %s\n\n", username);
     strcpy(username, "");
+    printf("-> Success: logout successfully.\n\n");
 }
 
 void registerScreen(int sockfd) {
@@ -550,7 +550,6 @@ void registerScreen(int sockfd) {
 
     char _username[100];
     int usernameIsValid = 0;
-
     while (!usernameIsValid) {
         printf("--> username: ");
         scanf("%[^\n]s", _username);
@@ -563,7 +562,6 @@ void registerScreen(int sockfd) {
 
     char _password[100];
     int passwordIsValid = 0;
-
     while (!passwordIsValid) {
         printf("--> password: ");
         scanf("%[^\n]s", _password);
@@ -575,7 +573,6 @@ void registerScreen(int sockfd) {
     }
 
     int _roleId = 0;
-
     while (1) {
         printf("--> role:   1. Student    2. Teacher\n");
         printf("--> Your choice: ");
@@ -588,12 +585,10 @@ void registerScreen(int sockfd) {
             printf("\n-> Error: role is not valid.\n\n");
     }
 
-    char message[100];
-    strcpy(message, _username);
-    strcat(message, " ");
-    strcat(message, _password);
-    strcat(message, " ");
-    strcat(message, (_roleId == 1 ? "STUDENT" : "TEACHER"));
+    printf("\n");
+
+    char message[1000];
+    sprintf(message, "%s %s %s", _username, _password, (_roleId == 1 ? "STUDENT" : "TEACHER"));
 
     struct Request* req = createRequest(REGISTER, message);
     sendRequest(sockfd, req);
@@ -601,20 +596,14 @@ void registerScreen(int sockfd) {
     struct Response* res = (struct Response*) malloc(sizeof(struct Response));;
     receiveResponse(sockfd, res);
 
-    if (!res) {
-		printf("\n-> Error: can't receive response from server.\n\n");
-		return;
-    }
     if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);        
+        printf("-> Failed: %s\n\n", res->message);        
         return;
     }
 
-    printf("\n-> Success: register successfully.\n\n");
+    printf("-> Success: register successfully.\n\n");
 }
 
 void exitScreen(int sockfd) {
-    printf("__________ Exit Screen __________\n\n");
-
-    printf("-> Exit\n\n");
+    printf("-> Bye\n\n");
 }

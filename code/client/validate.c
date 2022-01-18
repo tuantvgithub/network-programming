@@ -50,6 +50,18 @@ int validateQuestionFileName(char* questionFileName) {
 	return 1;
 }
 
+int validateAnswerFileName(char* answerFileName) {
+	if (!answerFileName) return -1;
+	int len = strlen(answerFileName);
+	if (len == 0) return -1;
+
+	for (int i = 0; i < len; i++) 
+		if (answerFileName[i] == ' ')
+			return -1;
+
+	return 1;
+}
+
 
 
 

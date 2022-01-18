@@ -51,6 +51,7 @@ int accountIsActive(char* username) {
     if (!username) return -1;
 
     FILE* activeFile = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "r");
+    if (!activeFile) return -1;
 
     char spam[500];
     fgets(spam, 500, activeFile);
@@ -60,6 +61,7 @@ int accountIsActive(char* username) {
         if (!strcmp(_username, username))
             return 1;
     
+
     return -1;
 }
 
@@ -113,11 +115,13 @@ int saveRoom(struct Room room) {
     return 1;
 }
 
-void deleteRoom(char* roomName) {
-    if (!roomName) return;
+int deleteRoom(char* roomName) {
+    if (!roomName) return -1;
 
     FILE* old = fopen(ROOM_STORAGE_PATH, "r");
     FILE* new = fopen(ROOM_STORAGE_TMP_PATH, "w");
+
+    if (!old || !new) return -1;
 
     char spam[500];
     fgets(spam, 500, old);
@@ -132,18 +136,26 @@ void deleteRoom(char* roomName) {
         }
     }
 
+    char tmp[100];
+    strcpy(tmp, "./server/result_");
+    strcat(tmp, roomName);
+    remove(tmp);
+
     remove(ROOM_STORAGE_PATH);
     rename(ROOM_STORAGE_TMP_PATH, ROOM_STORAGE_PATH);
 
     fclose(old);
     fclose(new);
+    return 1;
 }
 
-void updateRoom(struct Room* room) {
-    if (!room) return;
+int updateRoom(struct Room* room) {
+    if (!room) return -1;
 
     FILE* old = fopen(ROOM_STORAGE_PATH, "r");
     FILE* new = fopen(ROOM_STORAGE_TMP_PATH, "w");
+
+    if (!old || !new) return -1;
 
     char spam[500];
     fgets(spam, 500, old);
@@ -166,6 +178,8 @@ void updateRoom(struct Room* room) {
 
     fclose(old);
     fclose(new);
+
+    return 1;
 }
 
 struct Room* getRoomByRoomName(char* roomName) {
@@ -266,17 +280,33 @@ int getAllAnswers(char* file_path, char** output) {
     return n;
 }
 
-void saveResult(char* roomName, char* username, char* score) {
-    if (!roomName | !username | !score) return;
+int saveResult(char* roomName, char* username, char* score) {
+    if (!roomName | !username | !score) return -1;
 
     char fileName[100] = "./server/result_"; strcat(fileName, roomName);
     FILE* resultFile = fopen(fileName, "a+");
-    if (!resultFile) return;
+    if (!resultFile) return -1;
 
     fprintf(resultFile, "%s %s\n", username, score);
 
     fclose(resultFile);
-    return;
+    return 1;
+}
+
+int isSubmited(char* roomName, char* username) {
+    if (!roomName) return -1;
+
+    char fileName[100] = "./server/result_"; strcat(fileName, roomName);
+    FILE* resultFile = fopen(fileName, "r");
+    if (!resultFile) return -1;
+    
+    char _username[100], _score[100];
+
+    while (fscanf(resultFile, "%s %s", _username, _score) != EOF)
+        if (!strcmp(username, _username)) return 1;
+
+    fclose(resultFile);
+    return -1;
 }
 
 int getAllResult(char* roomName, char** output) {

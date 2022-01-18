@@ -2,20 +2,17 @@
 #define __POSTMAN_H__
 
 typedef enum {
-	LOGIN,
-	LOGOUT,
-	REGISTER,
+	LOGIN, LOGOUT, REGISTER,
 
-	JOIN,
-	OUT,
-	LR, SR, CR, DR, JR,
+	JOIN, OUT,
+	LR, SR, CR, DR,
 
-	START,
-	STOP,
-	GET_EXAM,
-	GET_RESULT,
+	START, STOP,
+	GET_EXAM, GET_RESULT,
 	ANSWER
 } Opcode;
+
+char* readOpcode(Opcode op);
 
 struct Request {
 	Opcode opcode;
@@ -23,7 +20,6 @@ struct Request {
 };
 
 struct Request* createRequest(Opcode opcode, char* message);
-
 void sendRequest(int sockfd, struct Request* request);
 int receiveRequest(int sockfd, struct Request* request);
 
@@ -34,21 +30,18 @@ typedef enum {
 	SYNTAX_ERROR = 11,
 	SERVER_ERROR = 12,
 	
-	LOGIN_FAILED = 21,
-	
-	REGISTER_FAILED = 41,
+	INCORRECT_PASSWORD = 21,
+	USERNAME_NOT_EXISTS = 22,
+	USERNAME_ALREADY_EXISTS = 23,
+	ACCOUNT_ALREADY_LOGGED_IN = 24,
 
-	NO_CONTENT = 51, 
+	ROOM_NOT_EXISTS = 31,
+	ROOM_ALREADY_EXISTS = 32,
 
-	CREATE_ROOM_FAILED = 71,
-	DROP_ROOM_FAILED = 72,
-	ROOM_NOT_FOUND = 73,
+	NOT_ALLOWED = 41,
 
-	START_FAILED = 81,
-	STOP_EXAM_FAILED = 82,
-	GET_EXAM_FAILED = 83,
-
-	ANSWER_FAILED = 91
+	EXAM_NOT_STARTED = 51,
+	EXAM_ALREADY_FINISHED = 52,
 } ResponseStatus;
 
 struct Response {
@@ -59,7 +52,6 @@ struct Response {
 
 struct Response* createResponse(ResponseStatus messStatus, char* data);
 void setResponseMessage(struct Response* response);
-
 void sendResponse(int sockfd, struct Response* response);
 void receiveResponse(int sockfd, struct Response* response);
 
