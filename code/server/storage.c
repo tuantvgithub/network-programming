@@ -166,6 +166,35 @@ void deleteRoom(char* roomName) {
     fclose(new);
 }
 
+void updateRoom(struct Room* room) {
+    if (!room) return;
+
+    FILE* old = fopen(ROOM_STORAGE_PATH, "r");
+    FILE* new = fopen(ROOM_STORAGE_TMP_PATH, "w");
+
+    char spam[500];
+    fgets(spam, 500, old);
+    fprintf(new, "%s\n", "hostName roomName questionFile status numOfStudents");
+
+    struct Room tmp;
+    while (fscanf(old, "%s %s %s %d %d", tmp.hostName, tmp.roomName, 
+                                tmp.questionsFile, &tmp.status, &tmp.numOfStudents) != EOF) {
+        if (strcmp(room->roomName, tmp.roomName)) {
+            fprintf(new, "%s %s %s %d %d\n", tmp.hostName, tmp.roomName, 
+                                tmp.questionsFile, tmp.status, tmp.numOfStudents);
+        } else {
+            fprintf(new, "%s %s %s %d %d\n", room->hostName, room->roomName, 
+                                room->questionsFile, room->status, room->numOfStudents);
+        }
+    }
+
+    remove(ROOM_STORAGE_PATH);
+    rename(ROOM_STORAGE_TMP_PATH, ROOM_STORAGE_PATH);
+
+    fclose(old);
+    fclose(new);
+}
+
 struct Room* getRoomByRoomName(char* roomName) {
     FILE *f = fopen(ROOM_STORAGE_PATH, "r");
 

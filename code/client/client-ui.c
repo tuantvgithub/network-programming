@@ -133,7 +133,7 @@ void createRoomScreen(int sockfd) {
     int questionFileNameIsValid = 0;
 
     while (!questionFileNameIsValid) {
-        printf("--> question file: ");
+        printf("--> exam file: ");
         scanf("%[^\n]s", questionFileName);
         while(getchar() != '\n');
         if (validateQuestionFileName(questionFileName) > 0)
@@ -199,7 +199,7 @@ void teacherRoomScreen(int sockfd, char* roomName) {
 }
 
 void showRoomInfoScreen(int sockfd, char* roomName) {
-    printf("__________ Room information Screen __________\n");
+    printf("__________ Room information Screen __________\n\n");
 
     char message[100];
     strcpy(message, roomName);
@@ -216,16 +216,19 @@ void showRoomInfoScreen(int sockfd, char* roomName) {
     }
 
     char* roomInfo[20];
-    split(res->data, " ", roomInfo);
+    split(res->data, "|", roomInfo);
     
-    printf("\n-> Room name: %s\n", roomInfo[0]);
-    printf("\n-> Question file: %s\n", roomInfo[1]);
-    printf("\n-> Number of students: %s\n", roomInfo[2]);
+    printf("-> Room name: %s\n", roomInfo[0]);
+    printf("-> Host: %s\n", roomInfo[1]);
+    printf("-> Number of students: %s\n", roomInfo[2]);
+    printf("-> Status: %s\n\n", roomInfo[3]);
 }
 
 void startExamScreen(int sockfd, char* roomName) {
     char message[100];
-    strcpy(message, roomName);
+    strcpy(message, username);
+    strcat(message, " ");
+    strcat(message, roomName);
 
     struct Request* req = createRequest(START, message);
     sendRequest(sockfd, req);
@@ -237,6 +240,8 @@ void startExamScreen(int sockfd, char* roomName) {
         printf("\n-> Failed: %s\n\n", res->message);
         return;
     }
+
+    printf("\n-> Sucess: start exam successfully.\n\n");
 }
 
 void getResults(int sockfd, char* roomName) {
@@ -329,11 +334,9 @@ void joinRoomScreen(int sockfd) {
     while(getchar() != '\n');
 
     char message[100];
-    strcpy(message, username);
-    strcat(message, " ");
-    strcat(message, roomName);
+    strcpy(message, roomName);
 
-    struct Request* req = createRequest(LR, message);
+    struct Request* req = createRequest(JOIN, message);
     sendRequest(sockfd, req);
 
     struct Response* res = (struct Response*) malloc(sizeof(struct Response));
@@ -344,7 +347,7 @@ void joinRoomScreen(int sockfd) {
         return;
     }
 
-    printf("\n-> Success: join room %s successfully.\n\n", roomName);
+    printf("\n-> Success: joined the room %s.\n\n", roomName);
 
     studentRoomScreen(sockfd, roomName);
 }
@@ -352,11 +355,12 @@ void joinRoomScreen(int sockfd) {
 void studentRoomScreen(int sockfd, char* roomName) {
     int event = 0;
 
-    while (event != 2) {
+    while (event != 3) {
         printf("__________ Room Screen __________\n\n");
 
-        printf("-> 1. Get exam\n");
-        printf("-> 2. Out room\n\n");
+        printf("-> 1. Show room info\n");
+        printf("-> 2. Get exam\n");
+        printf("-> 3. Out room\n\n");
 
         printf("--> Your choice: "); scanf("%d", &event);
         while(getchar() != '\n');
@@ -364,9 +368,12 @@ void studentRoomScreen(int sockfd, char* roomName) {
         
         switch (event) {
             case 1:
-                examScreen(sockfd, roomName);
+                showRoomInfoScreen(sockfd, roomName);
                 break;
             case 2:
+                examScreen(sockfd, roomName);
+                break;
+            case 3:
                 outRoom(sockfd, roomName);
                 break;
             default:

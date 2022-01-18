@@ -12,5 +12,9 @@ struct Response* doRegister(struct Request* req);
 struct Response* createRoom(struct Request* req);
 struct Response* dropRoom(struct Request* req);
 struct Response* listRoom(struct Request* req);
+struct Response* showRoom(struct Request* req);
+struct Response* joinRoom(struct Request* req);
+struct Response* outRoom(struct Request* req);
+struct Response* startExam(struct Request* req);
 
 #endif // __SERVER_H__

@@ -97,6 +97,14 @@ struct Response* handleRequest(int connfd, struct Request *request) {
             return dropRoom(request);
         case LR:
             return listRoom(request);
+        case SR:
+            return showRoom(request);
+        case JOIN:
+            return joinRoom(request);
+        case OUT:
+            return outRoom(request);
+        case START:
+            return startExam(request);
         default:
             return createResponse(SYNTAX_ERROR, NULL);
     }
@@ -209,4 +217,60 @@ struct Response* listRoom(struct Request* req) {
     }
 
     return createResponse(OK, data);
+}
+
+struct Response* showRoom(struct Request* req) {
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+
+    if (n != 1)
+        return createResponse(SYNTAX_ERROR, NULL);
+
+    struct Room* room = getRoomByRoomName(tokens[0]);
+    if (!room)
+        return createResponse(ROOM_NOT_FOUND, NULL);
+    
+    char data[1000] = "";
+    sprintf(data, "%s|%s|%d|%s", room->roomName, room->hostName, 
+                                    room->numOfStudents, room->status == 0 ? "pending" : "started");
+
+    return createResponse(OK, data);
+}
+
+struct Response* joinRoom(struct Request* req) {
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+
+    if (n != 1)
+        return createResponse(SYNTAX_ERROR, NULL);
+    
+    struct Room* room = getRoomByRoomName(tokens[0]);
+    if (!room)
+        return createResponse(ROOM_NOT_FOUND, NULL);
+
+    room->numOfStudents += 1;
+    updateRoom(room);
+
+    return createResponse(OK, NULL);
+}
+
+struct Response* outRoom(struct Request* req) {
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+
+    if (n != 1)
+        return createResponse(SYNTAX_ERROR, NULL);
+    
+    struct Room* room = getRoomByRoomName(tokens[0]);
+    if (!room)
+        return createResponse(ROOM_NOT_FOUND, NULL);
+
+    room->numOfStudents -= 1;
+    updateRoom(room);
+
+    return createResponse(OK, NULL);
+}
+
+struct Response* startExam(struct Request* req) {
+    return createResponse(SYNTAX_ERROR, NULL);
 }

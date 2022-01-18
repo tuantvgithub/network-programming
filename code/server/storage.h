@@ -42,6 +42,7 @@ struct Room {
 
 int saveRoom(struct Room room);
 void deleteRoom(char* roomName);
+void updateRoom(struct Room* room);
 struct Room* getRoomByRoomName(char* roomName);
 int getAllRooms(struct Room* roomArr);
 
