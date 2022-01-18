@@ -16,5 +16,8 @@ struct Response* showRoom(struct Request* req);
 struct Response* joinRoom(struct Request* req);
 struct Response* outRoom(struct Request* req);
 struct Response* startExam(struct Request* req);
+struct Response* stopExam(struct Request* req);
+struct Response* getExam(struct Request* req);
+struct Response* answer(struct Request* req);
 
 #endif // __SERVER_H__

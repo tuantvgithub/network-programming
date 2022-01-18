@@ -29,13 +29,14 @@ struct Question {
 	char answer[100];
 };
 
-struct List* getAllQuestion(char* quesFile);
-
+int getAllQuestions(char *file_path, char** output);
+int getAllAnswers(char* file_path, char** output);
 
 struct Room {
 	char roomName[45]; 
 	char hostName[45];
-	char questionsFile[45];
+	char questionFile[45];
+	char answerFile[45];
 	int status;
 	int numOfStudents;
 };

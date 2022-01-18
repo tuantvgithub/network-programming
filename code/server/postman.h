@@ -11,6 +11,7 @@ typedef enum {
 	LR, SR, CR, DR, JR,
 
 	START,
+	STOP,
 	GET_EXAM,
 	ANSWER
 } Opcode;
@@ -40,10 +41,13 @@ typedef enum {
 
 	CREATE_ROOM_FAILED = 71,
 	DROP_ROOM_FAILED = 72,
-	ROOM_NOT_FOUND = 73
+	ROOM_NOT_FOUND = 73,
 
 	START_FAILED = 81,
-	GET_EXAM_FAILED = 82
+	STOP_EXAM_FAILED = 82,
+	GET_EXAM_FAILED = 83,
+
+	ANSWER_FAILED = 91
 } ResponseStatus;
 
 struct Response {

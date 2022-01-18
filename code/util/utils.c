@@ -10,7 +10,7 @@ int split(char* str, char* delim, char** output) {
     char* token = strtok(str, delim);
     int count = 0;
     while (token) {
-        output[count] = (char*) malloc(sizeof(char) * 100);
+        output[count] = (char*) malloc(sizeof(char) * 1000);
         strcpy(output[count++], token);
         token = strtok(NULL, delim);
     }
@@ -18,32 +18,8 @@ int split(char* str, char* delim, char** output) {
     return count;
 }
 
-struct Node* createNode(void* value) {
-    struct Node* node = (struct Node*) malloc(sizeof(struct Node));
-    node->value = value;
-    node->next = NULL;
-    return node;
-}
-
-struct List* newList() {
-    struct List* l = (struct List*) malloc(sizeof(struct List));
-    l->head = NULL;
-    l->count = 0;
-    return l;
-}
-
-void addToList(struct List* l, void* value) {
-    struct Node* temp = l->head;
-    struct Node* node = createNode(value);
-    if (l->head == NULL) {
-        l->head = node;
-        l->count++;
-        return;
-    }
-    
-    while (temp->next) {
-        temp = temp->next;
-    }
-    temp->next = node;
-    l->count++;
+void freeArr(char** arr, int size) {
+    if (!arr) return;
+    for (int i = 0; i < size; i++)
+        free(arr[i]);
 }

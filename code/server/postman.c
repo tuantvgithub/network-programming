@@ -139,4 +139,6 @@ void receiveResponse(int sockfd, struct Response* response) {
     setResponseMessage(response);
     if (n > 1) strcpy(response->data, tokens[1]);
     else strcpy(response->data, "");
+
+    freeArr(tokens, n);
 }

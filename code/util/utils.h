@@ -1,20 +1,10 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include "../server/storage.h"
+
 int split(char* str, char* delim, char** output);
 
-struct Node {
-	void* value;
-	struct Node* next;
-};
-
-struct List {
-	struct Node* head;
-	int count;
-};
-
-struct Node* createNode(void* value);
-struct List* newList();
-void addToList(struct List* l, void* value);
+void freeArr(char** arr, int size);
 
 #endif // __UTILS_H__

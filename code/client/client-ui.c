@@ -142,12 +142,21 @@ void createRoomScreen(int sockfd) {
             printf("\n-> error: question file is not valid.\n\n");
     }
 
-    char message[100];
-    strcpy(message, username);
-    strcat(message, " ");
-    strcat(message, roomName);
-    strcat(message, " ");
-    strcat(message, questionFileName);
+    char answerFileName[100];
+    int answerFileNameIsValid = 0;
+
+    while (!answerFileNameIsValid) {
+        printf("--> answer file: ");
+        scanf("%[^\n]s", answerFileName);
+        while(getchar() != '\n');
+        if (validateQuestionFileName(answerFileName) > 0)
+            answerFileNameIsValid = 1;
+        else
+            printf("\n-> error: answer file is not valid.\n\n");
+    }
+
+    char message[1000];
+    sprintf(message, "%s %s %s %s", username, roomName, questionFileName, answerFileName);
 
     struct Request* req = createRequest(CR, message);
     sendRequest(sockfd, req);
@@ -168,13 +177,14 @@ void createRoomScreen(int sockfd) {
 void teacherRoomScreen(int sockfd, char* roomName) {
     int event = 0;
 
-    while (event != 4) {
+    while (event != 5) {
         printf("__________ Room Screen __________\n\n");
 
         printf("-> 1. Show room info\n");
         printf("-> 2. Start exam\n");
-        printf("-> 3. Get results\n");
-        printf("-> 4. Drop room\n\n");
+        printf("-> 3. Stop exam\n");
+        printf("-> 4. Get results\n");
+        printf("-> 5. Drop room\n\n");
 
         printf("--> Your choice: "); scanf("%d", &event);
         while(getchar() != '\n');
@@ -184,12 +194,15 @@ void teacherRoomScreen(int sockfd, char* roomName) {
                 showRoomInfoScreen(sockfd, roomName);
                 break;
             case 2:
-                startExamScreen(sockfd, roomName);
+                startExam(sockfd, roomName);
                 break;
             case 3:
-                getResults(sockfd, roomName);
+                stopExam(sockfd, roomName);
                 break;
             case 4:
+                getResults(sockfd, roomName);
+                break;
+            case 5:
                 dropRoomScreen(sockfd, roomName);
                 break;
             default:
@@ -224,7 +237,7 @@ void showRoomInfoScreen(int sockfd, char* roomName) {
     printf("-> Status: %s\n\n", roomInfo[3]);
 }
 
-void startExamScreen(int sockfd, char* roomName) {
+void startExam(int sockfd, char* roomName) {
     char message[100];
     strcpy(message, username);
     strcat(message, " ");
@@ -242,6 +255,26 @@ void startExamScreen(int sockfd, char* roomName) {
     }
 
     printf("\n-> Sucess: start exam successfully.\n\n");
+}
+
+void stopExam(int sockfd, char* roomName) {
+    char message[100];
+    strcpy(message, username);
+    strcat(message, " ");
+    strcat(message, roomName);
+
+    struct Request* req = createRequest(STOP, message);
+    sendRequest(sockfd, req);
+
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
+    receiveResponse(sockfd, res);
+
+    if (res->status != OK) {
+        printf("\n-> Failed: %s\n\n", res->message);
+        return;
+    }
+
+    printf("\n-> Sucess: stop exam successfully.\n\n");
 }
 
 void getResults(int sockfd, char* roomName) {
@@ -383,7 +416,7 @@ void studentRoomScreen(int sockfd, char* roomName) {
 }
 
 void examScreen(int sockfd, char* roomName) {
-    printf("__________ Exam Screen __________\n\n");
+    printf("__________ Exam Screen __________\n");
     
     char message[100];
     strcpy(message, roomName);
@@ -399,11 +432,50 @@ void examScreen(int sockfd, char* roomName) {
         return;
     }
 
-    // TODO: show questions here
+    char* questions[100];
+    int n = split(res->data, "|", questions);
 
-    // TODO: submit all answers here
+    char answers[10000] = "";
+    strcat(answers, username);
+    strcat(answers, "&");
+    strcat(answers, roomName);
+    strcat(answers, "&");
 
-    // TODO: show result
+    for (int i = 0; i < n; i++) {
+        char* tokens[100];
+        int answer = 0;
+        int m = split(questions[i], "#", tokens);
+
+        printf("\nQ%d. %s\n", i+1, tokens[0]);
+        
+        for(int j = 1; j < m; j++) 
+            printf("-> %d. %s\n", j, tokens[j]);
+        
+        printf("\n");
+        printf("--> Your answer: ");
+        scanf("%d", &answer);
+        while(getchar() != '\n');
+
+        if (answer > 0 && answer < m)
+            strcat(answers, tokens[answer]);
+        else
+            strcat(answers, " ");
+
+        if (i + 1 < n) strcat(answers, "|");
+    }
+
+    struct Request* req2 = createRequest(ANSWER, answers);
+    sendRequest(sockfd, req2);
+
+    struct Response* res2 = (struct Response*) malloc(sizeof(struct Response));
+    receiveResponse(sockfd, res2);
+
+    if (res->status != OK) {
+        printf("\n-> Failed: %s\n\n", res->message);
+        return;
+    }
+
+    printf("\n-> Your score: %s\n\n", res->data);
 }
 
 void outRoom(int sockfd, char* roomName) {

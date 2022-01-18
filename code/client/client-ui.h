@@ -13,7 +13,8 @@ void teacherMenuScreen(int sockfd);
 void createRoomScreen(int sockfd);
 void teacherRoomScreen(int sockfd, char* roomName);
 void showRoomInfoScreen(int sockfd, char* roomName);
-void startExamScreen(int sockfd, char* roomName);
+void startExam(int sockfd, char* roomName);
+void stopExam(int sockfd, char* roomName);
 void getResults(int sockfd, char* roomName);
 void dropRoomScreen(int sockfd, char* roomName);
 

@@ -101,40 +101,13 @@ int deleteActiveAccount(char* username) {
     return 1;
 }
 
-
-struct List* getAllQuestion(char *quesFile) {
-    char line[500] = "";
-
-    FILE *f = fopen(quesFile, "r");
-    struct List* l = newList();
-    if (f == NULL)  return l;
-
-    struct Question *ques;
-    while(fgets(line, 500, f) != NULL){
-        ques = (struct Question*) malloc(sizeof(struct Question));
-        // printf("ques: %s..\n", line);
-        ques->id = atoi(strtok(line, "|"));
-        strcpy(ques->ques, strtok(NULL, "|"));
-        strcpy(ques->choices[0], strtok(NULL, "|"));
-        strcpy(ques->choices[1], strtok(NULL, "|"));
-        strcpy(ques->choices[2], strtok(NULL, "|"));
-        strcpy(ques->choices[3], strtok(NULL, "|"));
-        strcpy(ques->answer, strtok(NULL, "|"));
-        addToList(l, ques);
-    }
-
-    fclose(f);
-    return l;
-}
-
-
 int saveRoom(struct Room room) {
     FILE* roomFile = fopen(ROOM_STORAGE_PATH, "a");
 
     if (roomFile == NULL) return -1;
 
-    fprintf(roomFile, "%s %s %s %d %d\n", room.hostName, room.roomName, 
-                                            room.questionsFile, room.status, room.numOfStudents);
+    fprintf(roomFile, "%s %s %s %s %d %d\n", room.hostName, room.roomName, room.questionFile,
+                                            room.answerFile, room.status, room.numOfStudents);
 
     fclose(roomFile);
     return 1;
@@ -148,14 +121,14 @@ void deleteRoom(char* roomName) {
 
     char spam[500];
     fgets(spam, 500, old);
-    fprintf(new, "%s\n", "hostName roomName questionFile status numOfStudents");
+    fprintf(new, "%s\n", "hostName roomName questionFile answerFile status numOfStudents");
 
     struct Room room;
-    while (fscanf(old, "%s %s %s %d %d", room.hostName, room.roomName, 
-                                room.questionsFile, &room.status, &room.numOfStudents) != EOF) {
+    while (fscanf(old, "%s %s %s %s %d %d", room.hostName, room.roomName, room.questionFile, 
+                                room.answerFile, &room.status, &room.numOfStudents) != EOF) {
         if (strcmp(roomName, room.roomName)) {
-            fprintf(new, "%s %s %s %d %d\n", room.hostName, room.roomName, 
-                                room.questionsFile, room.status, room.numOfStudents);
+            fprintf(new, "%s %s %s %s %d %d\n", room.hostName, room.roomName, room.questionFile,
+                                room.answerFile, room.status, room.numOfStudents);
         }
     }
 
@@ -174,17 +147,17 @@ void updateRoom(struct Room* room) {
 
     char spam[500];
     fgets(spam, 500, old);
-    fprintf(new, "%s\n", "hostName roomName questionFile status numOfStudents");
+    fprintf(new, "%s\n", "hostName roomName questionFile answerFile status numOfStudents");
 
     struct Room tmp;
-    while (fscanf(old, "%s %s %s %d %d", tmp.hostName, tmp.roomName, 
-                                tmp.questionsFile, &tmp.status, &tmp.numOfStudents) != EOF) {
+    while (fscanf(old, "%s %s %s %s %d %d", tmp.hostName, tmp.roomName, tmp.questionFile, 
+                                    tmp.answerFile, &tmp.status, &tmp.numOfStudents) != EOF) {
         if (strcmp(room->roomName, tmp.roomName)) {
-            fprintf(new, "%s %s %s %d %d\n", tmp.hostName, tmp.roomName, 
-                                tmp.questionsFile, tmp.status, tmp.numOfStudents);
+            fprintf(new, "%s %s %s %s %d %d\n", tmp.hostName, tmp.roomName, 
+                                tmp.questionFile, tmp.answerFile, tmp.status, tmp.numOfStudents);
         } else {
-            fprintf(new, "%s %s %s %d %d\n", room->hostName, room->roomName, 
-                                room->questionsFile, room->status, room->numOfStudents);
+            fprintf(new, "%s %s %s %s %d %d\n", room->hostName, room->roomName, room->questionFile,
+                                room->answerFile, room->status, room->numOfStudents);
         }
     }
 
@@ -202,8 +175,8 @@ struct Room* getRoomByRoomName(char* roomName) {
     fgets(spam, 500, f);
 
     struct Room* room = (struct Room*) malloc(sizeof(struct Room));
-    while (fscanf(f, "%s %s %s %d %d", room->hostName, room->roomName,
-                                room->questionsFile, &room->status, &room->numOfStudents) != EOF) {
+    while (fscanf(f, "%s %s %s %s %d %d", room->hostName, room->roomName, room->questionFile, 
+                                    room->answerFile, &room->status, &room->numOfStudents) != EOF) {
         if (!strcmp(roomName, room->roomName))
             return room;
     }
@@ -226,15 +199,17 @@ int getAllRooms(struct Room* output) {
 	char hostName[45];
 	char roomName[45];
 	int status, numOfStudents;
-	char questionsFile[45];
+	char questionFile[45];
+	char answerFile[45];
 
-    while (fscanf(f, "%s %s %s %d %d", hostName, roomName, 
-                                    questionsFile, &status, &numOfStudents) != EOF) {
+    while (fscanf(f, "%s %s %s %s %d %d", hostName, roomName, questionFile, 
+                                    answerFile, &status, &numOfStudents) != EOF) {
         struct Room tmp;
         tmp.status = status;
         tmp.numOfStudents = numOfStudents;
         strcpy(tmp.roomName, roomName);
-        strcpy(tmp.questionsFile, questionsFile);
+        strcpy(tmp.questionFile, questionFile);
+        strcpy(tmp.answerFile, answerFile);
         strcpy(tmp.hostName, hostName);
 
         output[count++] = tmp;
@@ -242,4 +217,50 @@ int getAllRooms(struct Room* output) {
 
     fclose(f);
     return count;
+}
+
+int getAllQuestions(char *file_path, char** output) {
+    if (!file_path || !output)  return -1;
+    char path[100] = "";
+    sprintf(path, "./server/%s", file_path);
+    FILE *f = fopen(path, "r");
+    if (!f) return 0;
+    
+    char spam[100];
+    fgets(spam, 100, f);
+
+    int n = 0;
+    char line[1000];
+    
+    while (fgets(line, 1000, f) != NULL) {
+        if (strlen(line) > 0)
+            line[strlen(line) - 1] = '\0';
+        output[n] = (char*) malloc(sizeof(char) * 1000);
+        strcpy(output[n++], line);
+    }
+
+    return n;
+}
+
+int getAllAnswers(char* file_path, char** output) {
+    if (!file_path || !output)  return -1;
+    char path[100] = "";
+    sprintf(path, "./server/%s", file_path);
+    FILE *f = fopen(path, "r");
+    if (!f) return 0;
+    
+    char spam[100];
+    fgets(spam, 100, f);
+
+    int n = 0;
+    char line[1000];
+    
+    while (fgets(line, 1000, f) != NULL) {
+        if (strlen(line) > 0)
+            line[strlen(line) - 1] = '\0';
+        output[n] = (char*) malloc(sizeof(char) * 1000);
+        strcpy(output[n++], line);
+    }
+
+    return n;
 }
