@@ -446,7 +446,7 @@ void examScreen(int sockfd, char* roomName) {
         int answer = 0;
         int m = split(questions[i], "#", tokens);
 
-        printf("\nQ%d. %s\n", i+1, tokens[0]);
+        printf("\n-> Question %d. %s\n", i+1, tokens[0]);
         
         for(int j = 1; j < m; j++) 
             printf("-> %d. %s\n", j, tokens[j]);
@@ -470,12 +470,12 @@ void examScreen(int sockfd, char* roomName) {
     struct Response* res2 = (struct Response*) malloc(sizeof(struct Response));
     receiveResponse(sockfd, res2);
 
-    if (res->status != OK) {
-        printf("\n-> Failed: %s\n\n", res->message);
+    if (res2->status != OK) {
+        printf("\n-> Failed: %s\n\n", res2->message);
         return;
     }
 
-    printf("\n-> Your score: %s\n\n", res->data);
+    printf("\n-> Your score: %s\n\n", res2->data);
 }
 
 void outRoom(int sockfd, char* roomName) {
@@ -493,7 +493,7 @@ void outRoom(int sockfd, char* roomName) {
         return;
     }
 
-    printf("\n-> Success: Out room (OK).\n\n");
+    printf("\n-> Success: Out room.\n\n");
 }
 
 void logoutScreen(int sockfd) {

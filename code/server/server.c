@@ -64,11 +64,11 @@ int main (int argc, char **argv) {
                 if ((rcvBytes = receiveRequest(connfd, req)) <= 0)  break;
                 
                 printf("Client[%s:%d]:\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-                // printf("Request:\n  -opcode: %d\n  -message: %s\n", req->opcode, req->message);
+                printf("Request:\n  -opcode: %d\n  -message: %s\n", req->opcode, req->message);
 
                 struct Response* res = handleRequest(connfd, req);
-                // printf("Response:\n  -message: %s\n  -data: %s\n", res->message, 
-                            // (strlen(res->data) == 0 ? "NULL" : res->data));
+                printf("Response:\n  -message: %s\n  -data: %s\n", res->message, 
+                            (strlen(res->data) == 0 ? "NULL" : res->data));
                 printf("--------------------------------------\n");
 
                 sendResponse(connfd, res);
@@ -368,13 +368,10 @@ struct Response* getExam(struct Request* req) {
     
     char data[10000] = "";
     strcat(data, questions[0]);
-    strcat(data, "|");
-    strcat(data, questions[1]);
-    // for (int i = 1; i < n_question; i++) {
-    //     strcat(data, "|");
-    //     strcat(data, questions[i]);
-    // }
-    printf("data: %s\n", data);
+    for (int i = 1; i < n_question; i++) {
+        strcat(data, "|");
+        strcat(data, questions[i]);
+    }
 
     freeArr(tokens, n);
     freeArr(questions, n_question);
@@ -398,7 +395,6 @@ struct Response* answer(struct Request* req) {
     
     char* userAnswers[100];
     int n_userAnswers = split(tokens[2], "|", userAnswers);
-    printf("%s - %s\n", userAnswers[0], userAnswers[1]);
 
     char* correctAnswers[100];
     int n_correctAnswers = getAllAnswers(room->answerFile, correctAnswers);
@@ -410,9 +406,8 @@ struct Response* answer(struct Request* req) {
             correctCount++;
     }
 
-    printf("%d/%d\n", correctCount, n_correctAnswers);
     char data[1000] = "";
-    // gcvt(correctCount / n_correctAnswers * 10.0, 2, data);
+    gcvt(correctCount / n_correctAnswers * 10.0, 2, data);
 
     freeArr(tokens, n);
     freeArr(userAnswers, n_userAnswers);
