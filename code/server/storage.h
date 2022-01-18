@@ -47,5 +47,7 @@ void updateRoom(struct Room* room);
 struct Room* getRoomByRoomName(char* roomName);
 int getAllRooms(struct Room* roomArr);
 
+void saveResult(char* roomName, char* username, char* score);
+int getAllResult(char* roomName, char** output);
 
 #endif // __STORAGE_H__

@@ -278,7 +278,36 @@ void stopExam(int sockfd, char* roomName) {
 }
 
 void getResults(int sockfd, char* roomName) {
+    printf("__________ Result Screen __________\n\n");
+    char message[100] = "";
+    strcat(message, roomName);
 
+    struct Request* req = createRequest(GET_RESULT, message);
+    sendRequest(sockfd, req);
+
+    struct Response* res = (struct Response*) malloc(sizeof(struct Response));
+    receiveResponse(sockfd, res);
+
+    if (res->status != OK) {
+        printf("\n-> Failed: %s\n\n", res->message);
+        return;
+    }
+
+    char* results[100];
+    int n_result = split(res->data, "|", results);
+    
+    printf("\t%-10s %-5s\n", "username", "score");
+    for (int i = 0; i < n_result; i++) {
+        char* tokens[10];
+        int n_token = split(results[i], " ", tokens);
+
+        printf("\t%-10s %-5s\n", tokens[0], tokens[1]);
+        
+        freeArr(tokens, n_token);
+    }
+    printf("\n");
+
+    freeArr(results, n_result);
 }
 
 void dropRoomScreen(int sockfd, char* roomName) {

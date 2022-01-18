@@ -109,6 +109,8 @@ struct Response* handleRequest(int connfd, struct Request *request) {
             return startExam(request);
         case GET_EXAM:
             return getExam(request);
+        case GET_RESULT:
+            return getResult(request);
         case ANSWER:
             return answer(request);
         default:
@@ -380,6 +382,37 @@ struct Response* getExam(struct Request* req) {
     return createResponse(OK, data);
 }
 
+struct Response* getResult(struct Request* req) {
+    char* tokens[5];
+    int n = split(req->message, " ", tokens);
+
+    if (n != 1)
+        return createResponse(SYNTAX_ERROR, NULL);
+
+    struct Room* room = getRoomByRoomName(tokens[0]);
+    if (!room)
+        return createResponse(ROOM_NOT_FOUND, NULL);
+
+    char* results[100];
+    int n_result = getAllResult(tokens[0], results);
+    
+    if (n_result < 1)
+        return createResponse(NO_CONTENT, NULL);
+
+    char data[10000] = "";
+    strcat(data, results[0]);
+    for (int i = 1; i < n_result; i++) {
+        strcat(data, "|");
+        strcat(data, results[i]);
+    }
+
+    freeArr(tokens, n);
+    freeArr(results, n_result);
+    free(room);
+
+    return createResponse(OK, data);
+}
+
 struct Response* answer(struct Request* req) {
     char* tokens[5];
     int n = split(req->message, "&", tokens);
@@ -409,9 +442,12 @@ struct Response* answer(struct Request* req) {
     char data[1000] = "";
     gcvt(correctCount / n_correctAnswers * 10.0, 2, data);
 
+    saveResult(room->roomName, tokens[0], data);
+
     freeArr(tokens, n);
     freeArr(userAnswers, n_userAnswers);
     freeArr(correctAnswers, n_correctAnswers);
     free(room);
+
     return createResponse(OK, data);
 }

@@ -262,5 +262,40 @@ int getAllAnswers(char* file_path, char** output) {
         strcpy(output[n++], line);
     }
 
+    fclose(f);
     return n;
+}
+
+void saveResult(char* roomName, char* username, char* score) {
+    if (!roomName | !username | !score) return;
+
+    char fileName[100] = "./server/result_"; strcat(fileName, roomName);
+    FILE* resultFile = fopen(fileName, "a+");
+    if (!resultFile) return;
+
+    fprintf(resultFile, "%s %s\n", username, score);
+
+    fclose(resultFile);
+    return;
+}
+
+int getAllResult(char* roomName, char** output) {
+    if (!roomName) return -1;
+
+    char fileName[100] = "./server/result_"; strcat(fileName, roomName);
+    FILE* resultFile = fopen(fileName, "r");
+    if (!resultFile) return -1;
+    
+    int count = 0;
+    char line[100] = "";
+
+    while (fgets(line, 100, resultFile) != NULL) {
+        if (strlen(line) > 0)
+            line[strlen(line) - 1] = '\0';
+        output[count] = (char*) malloc(sizeof(char) * 100);
+        strcpy(output[count++], line);
+    }
+
+    fclose(resultFile);
+    return count;
 }

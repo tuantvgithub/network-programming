@@ -13,6 +13,7 @@ typedef enum {
 	START,
 	STOP,
 	GET_EXAM,
+	GET_RESULT,
 	ANSWER
 } Opcode;
 
