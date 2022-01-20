@@ -1,0 +1,4 @@
+username passwrod role
+admin admin1 STUDENT
+username password TEACHER
+tuantv tuantv STUDENT

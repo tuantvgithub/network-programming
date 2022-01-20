@@ -1,22 +1,32 @@
-all:  client server
+CC = gcc
+FLAGS = -Wall -g -c
 
-client : client.o validate.o client-ui.o postman.o
-	gcc client.o validate.o client-ui.o postman.o -o client 
-server : server.o storage.o postman.o 
-	gcc server.o storage.o postman.o -o server
+OUT = out
+EXEC = exec
 
-client.o : ./client-side/client.c
-	gcc -c ./client-side/client.c
-client-ui.o : ./client-side/client-ui.c
-	gcc -c ./client-side/client-ui.c
-validate.o : ./client-side/validate.c
-	gcc -c ./client-side/validate.c
-postman.o : ./server-side/postman.c
-	gcc -c ./server-side/postman.c
-storage.o : ./server-side/storage.c
-	gcc -c ./server-side/storage.c
-server.o : ./server-side/server.c
-	gcc -c ./server-side/server.c
+SRC = src
+
+all:  $(EXEC)/client $(EXEC)/server
+
+$(EXEC)/client : $(OUT)/client.o $(OUT)/validate.o $(OUT)/client-ui.o $(OUT)/postman.o $(OUT)/utils.o
+	$(CC) $(OUT)/client.o $(OUT)/validate.o $(OUT)/client-ui.o $(OUT)/postman.o $(OUT)/utils.o -o $(EXEC)/client
+$(EXEC)/server : $(OUT)/server.o $(OUT)/storage.o $(OUT)/postman.o $(OUT)/utils.o
+	$(CC) $(OUT)/server.o $(OUT)/storage.o $(OUT)/postman.o $(OUT)/utils.o -o $(EXEC)/server
+
+$(OUT)/client.o : $(SRC)/client.c
+	$(CC) $(FLAGS) $(SRC)/client.c -o $(OUT)/client.o
+$(OUT)/client-ui.o : $(SRC)/client-ui.c
+	$(CC) $(FLAGS) $(SRC)/client-ui.c -o $(OUT)/client-ui.o
+$(OUT)/validate.o : $(SRC)/validate.c
+	$(CC) $(FLAGS) $(SRC)/validate.c -o $(OUT)/validate.o
+$(OUT)/postman.o : $(SRC)/postman.c
+	$(CC) $(FLAGS) $(SRC)/postman.c -o $(OUT)/postman.o
+$(OUT)/storage.o : $(SRC)/storage.c
+	$(CC) $(FLAGS) $(SRC)/storage.c -o $(OUT)/storage.o
+$(OUT)/utils.o: $(SRC)/utils.c
+	$(CC) $(FLAGS) $(SRC)/utils.c -o $(OUT)/utils.o
+$(OUT)/server.o : $(SRC)/server.c
+	$(CC) $(FLAGS) $(SRC)/server.c -o $(OUT)/server.o
 
 clean :
-	rm *.o
+	rm $(OUT)/* $(EXEC)/*
