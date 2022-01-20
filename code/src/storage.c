@@ -83,6 +83,11 @@ int deleteActiveAccount(char* username) {
     FILE* old = fopen(ACTIVE_ACCOUNT_STORAGE_PATH, "r");
     FILE* new = fopen(ACTIVE_ACCOUNT_STORAGE_TMP_PATH, "w");
 
+    if (!old || !new) {
+        printf("\nError: failed to open file");
+        return -1;
+    }
+
     char spam[500];
     fgets(spam, 500, old);
     fprintf(new, "%s\n", "username");
@@ -136,9 +141,9 @@ int deleteRoom(char* roomName) {
         }
     }
 
-    char tmp[100];
+    char tmp[1000];
     strcpy(tmp, RESULT_DIR_PATH);
-    strcat(tmp, "result_");
+    strcat(tmp, "/result_");
     strcat(tmp, roomName);
     strcat(tmp, ".txt");
     remove(tmp);
@@ -157,7 +162,10 @@ int updateRoom(struct Room* room) {
     FILE* old = fopen(ROOM_STORAGE_PATH, "r");
     FILE* new = fopen(ROOM_STORAGE_TMP_PATH, "w");
 
-    if (!old || !new) return -1;
+    if (!old || !new) {
+        printf("\nError: failed to open file\n\n");
+        return -1;
+    }
 
     char spam[500];
     fgets(spam, 500, old);
@@ -170,6 +178,7 @@ int updateRoom(struct Room* room) {
             fprintf(new, "%s %s %s %s %d %d\n", tmp.hostName, tmp.roomName, 
                                 tmp.questionFile, tmp.answerFile, tmp.status, tmp.numOfStudents);
         } else {
+            printf("num: %d\n", room->numOfStudents);
             fprintf(new, "%s %s %s %s %d %d\n", room->hostName, room->roomName, room->questionFile,
                                 room->answerFile, room->status, room->numOfStudents);
         }

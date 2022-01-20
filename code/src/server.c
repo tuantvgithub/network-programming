@@ -304,7 +304,7 @@ struct Response* outRoom(struct Request* req) {
     if (n != 1)
         return createResponse(SYNTAX_ERROR, NULL);
     
-    struct Room* room = getRoomByRoomName(tokens[1]);
+    struct Room* room = getRoomByRoomName(tokens[0]);
     if (!room)
         return createResponse(OK, NULL);
 

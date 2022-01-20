@@ -2,3 +2,6 @@ username passwrod role
 admin admin1 STUDENT
 username password TEACHER
 tuantv tuantv STUDENT
+network network STUDENT
+test1 123123 STUDENT
+tranvantuan tranvantuan TEACHER

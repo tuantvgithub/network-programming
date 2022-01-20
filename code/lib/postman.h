@@ -4,12 +4,10 @@
 typedef enum {
 	LOGIN, LOGOUT, REGISTER,
 
-	JOIN, OUT,
-	LR, SR, CR, DR,
+	JOIN, OUT, LR, SR, CR, DR,
 
-	START, STOP,
-	GET_EXAM, GET_RESULT,
-	ANSWER
+	START, STOP, GET_EXAM, 
+	GET_RESULT, ANSWER
 } Opcode;
 
 char* readOpcode(Opcode op);

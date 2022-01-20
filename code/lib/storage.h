@@ -7,10 +7,10 @@
 
 #define ACCOUNT_STORAGE_PATH "./data/account.txt"
 #define ACTIVE_ACCOUNT_STORAGE_PATH "./data/active_account.txt"
-#define ACTIVE_ACCOUNT_STORAGE_TMP_PATH "./data/tmp/active_account_tmp.txt"
+#define ACTIVE_ACCOUNT_STORAGE_TMP_PATH "./data/active_account_tmp.txt"
 
 #define ROOM_STORAGE_PATH "./data/room.txt"
-#define ROOM_STORAGE_TMP_PATH "./data/tmp/room_tmp.txt"
+#define ROOM_STORAGE_TMP_PATH "./data/room_tmp.txt"
 
 
 struct Account {
