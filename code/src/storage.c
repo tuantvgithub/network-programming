@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "storage.h"
-#include "../util/utils.h"
+#include "../lib/storage.h"
+#include "../lib/utils.h"
 
 int saveAccount(char* username, char* password, char* role) {
     if (!username || !password) return -1;
@@ -137,8 +137,10 @@ int deleteRoom(char* roomName) {
     }
 
     char tmp[100];
-    strcpy(tmp, "./server/result_");
+    strcpy(tmp, RESULT_DIR_PATH);
+    strcat(tmp, "result_");
     strcat(tmp, roomName);
+    strcat(tmp, ".txt");
     remove(tmp);
 
     remove(ROOM_STORAGE_PATH);
@@ -236,7 +238,7 @@ int getAllRooms(struct Room* output) {
 int getAllQuestions(char *file_path, char** output) {
     if (!file_path || !output)  return -1;
     char path[100] = "";
-    sprintf(path, "./server/%s", file_path);
+    sprintf(path, "%s/%s", QUESTION_DIR_PATH, file_path);
     FILE *f = fopen(path, "r");
     if (!f) return 0;
     
@@ -259,7 +261,7 @@ int getAllQuestions(char *file_path, char** output) {
 int getAllAnswers(char* file_path, char** output) {
     if (!file_path || !output)  return -1;
     char path[100] = "";
-    sprintf(path, "./server/%s", file_path);
+    sprintf(path, "%s/%s", ANSWER_DIR_PATH, file_path);
     FILE *f = fopen(path, "r");
     if (!f) return 0;
     
@@ -283,7 +285,9 @@ int getAllAnswers(char* file_path, char** output) {
 int saveResult(char* roomName, char* username, char* score) {
     if (!roomName | !username | !score) return -1;
 
-    char fileName[100] = "./server/result_"; strcat(fileName, roomName);
+    char fileName[100];
+    sprintf(fileName, "%s/result_%s", RESULT_DIR_PATH, roomName);
+
     FILE* resultFile = fopen(fileName, "a+");
     if (!resultFile) return -1;
 
@@ -296,7 +300,9 @@ int saveResult(char* roomName, char* username, char* score) {
 int isSubmited(char* roomName, char* username) {
     if (!roomName) return -1;
 
-    char fileName[100] = "./server/result_"; strcat(fileName, roomName);
+    char fileName[100];
+    sprintf(fileName, "%s/result_%s", RESULT_DIR_PATH, roomName);
+
     FILE* resultFile = fopen(fileName, "r");
     if (!resultFile) return -1;
     
@@ -312,7 +318,8 @@ int isSubmited(char* roomName, char* username) {
 int getAllResult(char* roomName, char** output) {
     if (!roomName) return -1;
 
-    char fileName[100] = "./server/result_"; strcat(fileName, roomName);
+    char fileName[100];
+    sprintf(fileName, "%s/result_%s", RESULT_DIR_PATH, roomName);
     FILE* resultFile = fopen(fileName, "r");
     if (!resultFile) return -1;
     

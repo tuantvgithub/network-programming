@@ -7,10 +7,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "postman.h"
-#include "storage.h"
-#include "../util/utils.h"
-#include "server.h"
+#include "../lib/postman.h"
+#include "../lib/storage.h"
+#include "../lib/utils.h"
+#include "../lib/server.h"
 
 #define MAXLINE 4096 /*max text line length*/
 #define LISTENQ 8 /*maximum number of client connections*/

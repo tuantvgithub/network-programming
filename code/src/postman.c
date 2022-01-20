@@ -5,8 +5,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "postman.h"
-#include "../util/utils.h"
+#include "../lib/postman.h"
+#include "../lib/utils.h"
 
 
 #define MAXLEN 10000

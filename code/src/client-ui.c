@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client-ui.h"
-#include "validate.h"
-#include "../server/postman.h"
-#include "../util/utils.h"
+#include "../lib/client-ui.h"
+#include "../lib/validate.h"
+#include "../lib/postman.h"
+#include "../lib/utils.h"
 
 char username[100];
 char role[100];

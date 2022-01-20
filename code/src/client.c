@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "client-ui.h"
+#include "../lib/client-ui.h"
 
 int main(int argc, char** argv) {
     if (argc != 3) {

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "validate.h"
+#include "../lib/validate.h"
 
 int validateUsername(char* username) {
 	int len = strlen(username);

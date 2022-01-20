@@ -1,12 +1,16 @@
 #ifndef __STORAGE_H__
 #define __STORAGE_H__
 
-#define ACCOUNT_STORAGE_PATH "./server/account.txt"
-#define ACTIVE_ACCOUNT_STORAGE_PATH "./server/active_account.txt"
-#define ACTIVE_ACCOUNT_STORAGE_TMP_PATH "./server/active_account_tmp.txt"
+#define QUESTION_DIR_PATH "./data/question"
+#define ANSWER_DIR_PATH "./data/answer"
+#define RESULT_DIR_PATH "./data/result"
 
-#define ROOM_STORAGE_PATH "./server/room.txt"
-#define ROOM_STORAGE_TMP_PATH "./server/room_tmp.txt"
+#define ACCOUNT_STORAGE_PATH "./data/account.txt"
+#define ACTIVE_ACCOUNT_STORAGE_PATH "./data/active_account.txt"
+#define ACTIVE_ACCOUNT_STORAGE_TMP_PATH "./data/tmp/active_account_tmp.txt"
+
+#define ROOM_STORAGE_PATH "./data/room.txt"
+#define ROOM_STORAGE_TMP_PATH "./data/tmp/room_tmp.txt"
 
 
 struct Account {

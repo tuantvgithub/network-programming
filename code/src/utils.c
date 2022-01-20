@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utils.h"
+#include "../lib/utils.h"
 
 int split(char* str, char* delim, char** output) {
     if (!str || !delim || !output) return -1;

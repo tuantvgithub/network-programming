@@ -4,9 +4,7 @@ FLAGS = -Wall -g -c
 OUT = out
 EXEC = exec
 
-CLIENT_SIDE = client
-SERVER_SIDE = server
-UTILS_DIR = util
+SRC = src
 
 all:  $(EXEC)/client $(EXEC)/server
 
@@ -15,20 +13,20 @@ $(EXEC)/client : $(OUT)/client.o $(OUT)/validate.o $(OUT)/client-ui.o $(OUT)/pos
 $(EXEC)/server : $(OUT)/server.o $(OUT)/storage.o $(OUT)/postman.o $(OUT)/utils.o
 	$(CC) $(OUT)/server.o $(OUT)/storage.o $(OUT)/postman.o $(OUT)/utils.o -o $(EXEC)/server
 
-$(OUT)/client.o : $(CLIENT_SIDE)/client.c
-	$(CC) $(FLAGS) $(CLIENT_SIDE)/client.c -o $(OUT)/client.o
-$(OUT)/client-ui.o : $(CLIENT_SIDE)/client-ui.c
-	$(CC) $(FLAGS) $(CLIENT_SIDE)/client-ui.c -o $(OUT)/client-ui.o
-$(OUT)/validate.o : $(CLIENT_SIDE)/validate.c
-	$(CC) $(FLAGS) $(CLIENT_SIDE)/validate.c -o $(OUT)/validate.o
-$(OUT)/postman.o : $(SERVER_SIDE)/postman.c
-	$(CC) $(FLAGS) $(SERVER_SIDE)/postman.c -o $(OUT)/postman.o
-$(OUT)/storage.o : $(SERVER_SIDE)/storage.c
-	$(CC) $(FLAGS) $(SERVER_SIDE)/storage.c -o $(OUT)/storage.o
-$(OUT)/utils.o: $(UTILS_DIR)/utils.c
-	$(CC) $(FLAGS) $(UTILS_DIR)/utils.c -o $(OUT)/utils.o
-$(OUT)/server.o : $(SERVER_SIDE)/server.c
-	$(CC) $(FLAGS) $(SERVER_SIDE)/server.c -o $(OUT)/server.o
+$(OUT)/client.o : $(SRC)/client.c
+	$(CC) $(FLAGS) $(SRC)/client.c -o $(OUT)/client.o
+$(OUT)/client-ui.o : $(SRC)/client-ui.c
+	$(CC) $(FLAGS) $(SRC)/client-ui.c -o $(OUT)/client-ui.o
+$(OUT)/validate.o : $(SRC)/validate.c
+	$(CC) $(FLAGS) $(SRC)/validate.c -o $(OUT)/validate.o
+$(OUT)/postman.o : $(SRC)/postman.c
+	$(CC) $(FLAGS) $(SRC)/postman.c -o $(OUT)/postman.o
+$(OUT)/storage.o : $(SRC)/storage.c
+	$(CC) $(FLAGS) $(SRC)/storage.c -o $(OUT)/storage.o
+$(OUT)/utils.o: $(SRC)/utils.c
+	$(CC) $(FLAGS) $(SRC)/utils.c -o $(OUT)/utils.o
+$(OUT)/server.o : $(SRC)/server.c
+	$(CC) $(FLAGS) $(SRC)/server.c -o $(OUT)/server.o
 
 clean :
 	rm $(OUT)/* $(EXEC)/*

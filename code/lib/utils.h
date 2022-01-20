@@ -1,7 +1,7 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include "../server/storage.h"
+#include "storage.h"
 
 int split(char* str, char* delim, char** output);
 
